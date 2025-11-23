@@ -24,39 +24,32 @@ export class ProductsService {
   private async saveBase64Image(base64Data: string, filename: string, productId: number): Promise<string> {
     try {
       this.logger.log(`📥 saveBase64Image chamado - produto: ${productId}, arquivo: ${filename}`);
-      this.logger.log(`📊 Base64 recebido - tamanho: ${base64Data.length} chars, início: "${base64Data.substring(0, 100)}..."`);
+      this.logger.log(`📊 Base64 recebido - tamanho: ${base64Data.length} chars`);
       
       // Extrair o base64 puro (aceita image/* ou application/octet-stream)
       const matches = base64Data.match(/^data:(?:image\/(\w+)|application\/octet-stream);base64,(.+)$/);
       if (!matches) {
         this.logger.error(`❌ Formato de imagem inválido - NÃO MATCHOU O REGEX`);
-        this.logger.error(`📄 Primeira parte: ${base64Data.substring(0, 100)}...`);
-        this.logger.error(`📄 Tamanho total: ${base64Data.length}`);
         throw new Error('Formato de imagem inválido - regex não bateu');
       }
 
       // Se veio como octet-stream, pega extensão do filename, senão do mime type
       const ext = matches[1] || filename.split('.').pop() || 'jpg';
       const data = matches[2];
-      const buffer = Buffer.from(data, 'base64');
-      this.logger.log(`📊 Imagem processada - ext: ${ext}, tamanho: ${buffer.length} bytes`);
-
-      // Nome único para o arquivo
-      const timestamp = Date.now();
-      const uniqueFilename = `${productId}_${timestamp}_${filename}`;
-      const filepath = path.join(this.uploadsDir, uniqueFilename);
-      this.logger.log(`💾 Salvando em: ${filepath}`);
-
-      // Salvar arquivo
-      fs.writeFileSync(filepath, buffer);
-      this.logger.log(`✅ Arquivo salvo com sucesso!`);
-
-      // Retornar URL pública
-      const publicUrl = `/uploads/products/${uniqueFilename}`;
-      this.logger.log(`🔗 URL pública: ${publicUrl}`);
-      return publicUrl;
+      
+      // ⚡ NOVO: Salvar diretamente como base64 inline (não precisa de arquivo físico)
+      // Isso garante que as imagens funcionem em produção sem precisar de storage externo
+      const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : 
+                       ext === 'png' ? 'image/png' : 
+                       ext === 'webp' ? 'image/webp' : 
+                       ext === 'gif' ? 'image/gif' : 'image/jpeg';
+      
+      const base64Url = `data:${mimeType};base64,${data}`;
+      this.logger.log(`✅ Imagem salva como base64 inline - ${Math.round(data.length / 1024)}KB`);
+      
+      return base64Url;
     } catch (error) {
-      this.logger.error(`❌ Erro ao salvar imagem: ${error.message}`);
+      this.logger.error(`❌ Erro ao processar imagem: ${error.message}`);
       throw error;
     }
   }
