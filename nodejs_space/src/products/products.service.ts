@@ -266,10 +266,6 @@ export class ProductsService {
         if (!productDto.name || productDto.name.trim() === '') {
           throw new Error('Nome do produto não pode estar vazio');
         }
-        
-        if (!productDto.price || isNaN(Number(productDto.price))) {
-          throw new Error(`Preço inválido: ${productDto.price}`);
-        }
 
         const product = await this.create(productDto);
         createdProducts.push(product);

@@ -25,7 +25,7 @@ model Product {
   id             Int      @id @default(autoincrement())
   name           String
   description    String   @db.Text
-  price          Decimal  @db.Decimal(10, 2)
+  price          Decimal? @db.Decimal(10, 2)
   category       String?
   categoryId     Int?     @map("category_id")
   condition      String? // "novo", "semi-novo"

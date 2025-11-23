@@ -36,10 +36,11 @@ export class CreateProductDto {
   @IsString()
   description: string;
 
-  @ApiProperty({ example: 8500.0 })
+  @ApiPropertyOptional({ example: 8500.0 })
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  price: number;
+  price?: number;
 
   @ApiPropertyOptional({ example: 'iMac' })
   @IsOptional()

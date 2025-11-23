@@ -180,26 +180,32 @@
                         const descricao = descricaoFile ? await descricaoFile.async('text') : '';
                         const info = infoFile ? await infoFile.async('text') : '';
 
-                        // Contar imagens
+                        // Coletar imagens
+                        const images = [];
                         let imageCount = 0;
-                        zip.forEach((path) => {
+                        zip.forEach((path, zipEntry) => {
                             if (path.startsWith(folder + '/') && /\.(jpg|jpeg|png|gif|webp)$/i.test(path)) {
                                 imageCount++;
+                                // Por enquanto, vamos usar um placeholder
+                                // TODO: Implementar upload para cloud storage
+                                images.push({
+                                    url: `https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Placeholder.svg/958px-Placeholder.svg.png`,
+                                    order: imageCount
+                                });
                             }
                         });
 
                         // Parsear dados
                         const productData = parseProductData(folderName, descricao, info);
-                        
-                        // Validar preço
-                        if (!productData.price || productData.price <= 0) {
-                            throw new Error(`Preço inválido: ${productData.price}`);
-                        }
+                        productData.images = images;
                         
                         products.push(productData);
 
                         // Adicionar à lista
-                        addProductToList(folderName, 'success', `R$ ${productData.price.toFixed(2)} - ${imageCount} imagens`);
+                        const priceText = productData.price && productData.price > 0 
+                            ? `R$ ${productData.price.toFixed(2)}` 
+                            : 'Sem preço';
+                        addProductToList(folderName, 'success', `${priceText} - ${imageCount} imagens`);
                     } catch (error) {
                         addProductToList(folderName, 'error', error.message);
                     }
@@ -257,7 +263,8 @@
             const description = descLines.slice(1, -1).join('\n').trim() || 'Sem descrição';
             
             // Extrair preço - procurar em todas as linhas, não só na última
-            let price = 0;
+            // Preço é OPCIONAL - se não encontrar, será null
+            let price = null;
             for (let i = descLines.length - 1; i >= 0; i--) {
                 const line = descLines[i];
                 const priceMatch = line.match(/R?\$?\s*([\d.,]+)/);
@@ -305,10 +312,9 @@
                 }
             }
 
-            return {
+            const product = {
                 name,
                 description,
-                price,
                 category,
                 brand,
                 condition,
@@ -316,6 +322,13 @@
                 specs: {},
                 images: [],
             };
+            
+            // Só adicionar preço se existir e for válido
+            if (price !== null && price > 0) {
+                product.price = price;
+            }
+            
+            return product;
         }
 
         function updateProgress(current, total) {
