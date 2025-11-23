@@ -13,9 +13,25 @@ import {
 import { Type } from 'class-transformer';
 
 class ImageDto {
-  @ApiProperty()
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  url: string;
+  url?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  data?: string; // Base64 image data
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  ext?: string; // File extension
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  filename?: string; // Original filename
 
   @ApiPropertyOptional()
   @IsOptional()

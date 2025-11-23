@@ -107,6 +107,16 @@
     <script>
         let products = [];
 
+        // Converter Blob para Base64
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
         const dropzone = document.getElementById('dropzone');
         const fileInput = document.getElementById('fileInput');
 
@@ -182,17 +192,25 @@
                     const descricao = await descricaoFile.async('text');
                     const info = infoFile ? await infoFile.async('text') : '';
 
-                    // Contar imagens
-                    let imageCount = 0;
-                    zip.forEach((path, zipEntry) => {
+                    // Extrair imagens
+                    const images = [];
+                    for (const path in zip.files) {
+                        const zipEntry = zip.files[path];
                         if (path.startsWith(folder + '/') && /\.(jpg|jpeg|png|gif|webp)$/i.test(path) && !zipEntry.dir) {
-                            imageCount++;
+                            const imageBlob = await zipEntry.async('blob');
+                            const imageBase64 = await blobToBase64(imageBlob);
+                            const ext = path.split('.').pop().toLowerCase();
+                            images.push({
+                                data: imageBase64,
+                                ext: ext,
+                                filename: path.split('/').pop()
+                            });
                         }
-                    });
+                    }
 
                     const productData = parseProductData(folderName, descricao, info);
                     productData.category = categoryName; // Nome da categoria (será criada se não existir)
-                    productData.images = []; // Sem imagens por enquanto
+                    productData.images = images; // Imagens em Base64
                     
                     products.push(productData);
 
@@ -204,7 +222,7 @@
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
                             <div>
                                 <p class="font-medium">${productData.name}</p>
-                                <p class="text-sm text-gray-600">${priceText} • ${imageCount} imagens</p>
+                                <p class="text-sm text-gray-600">${priceText} • ${images.length} imagens</p>
                             </div>
                             <i class="fas fa-check-circle text-green-600"></i>
                         </div>

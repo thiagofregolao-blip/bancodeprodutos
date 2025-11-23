@@ -6,12 +6,48 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { FilterProductsDto } from './dto/filter-products.dto';
 import { SearchProductsDto } from './dto/search-products.dto';
 import { Prisma } from '@prisma/client';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class ProductsService {
   private readonly logger = new Logger(ProductsService.name);
+  private readonly uploadsDir = path.join(process.cwd(), 'uploads', 'products');
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {
+    // Criar diretório de uploads se não existir
+    if (!fs.existsSync(this.uploadsDir)) {
+      fs.mkdirSync(this.uploadsDir, { recursive: true });
+    }
+  }
+
+  private async saveBase64Image(base64Data: string, filename: string, productId: number): Promise<string> {
+    try {
+      // Extrair o base64 puro (remover data:image/...;base64,)
+      const matches = base64Data.match(/^data:image\/(\w+);base64,(.+)$/);
+      if (!matches) {
+        throw new Error('Formato de imagem inválido');
+      }
+
+      const ext = matches[1];
+      const data = matches[2];
+      const buffer = Buffer.from(data, 'base64');
+
+      // Nome único para o arquivo
+      const timestamp = Date.now();
+      const uniqueFilename = `${productId}_${timestamp}_${filename}`;
+      const filepath = path.join(this.uploadsDir, uniqueFilename);
+
+      // Salvar arquivo
+      fs.writeFileSync(filepath, buffer);
+
+      // Retornar URL pública
+      return `/uploads/products/${uniqueFilename}`;
+    } catch (error) {
+      this.logger.error(`Erro ao salvar imagem: ${error.message}`);
+      throw error;
+    }
+  }
 
   async create(createProductDto: CreateProductDto) {
     this.logger.log(`Creating product: ${createProductDto.name}`);
@@ -33,18 +69,11 @@ export class ProductsService {
       categoryId = category.id;
     }
 
+    // Criar produto primeiro (sem imagens)
     const product = await this.prisma.product.create({
       data: {
         ...productData,
         categoryId,
-        images: images
-          ? {
-              create: images.map((img, index) => ({
-                url: img.url,
-                order: img.order ?? index + 1,
-              })),
-            }
-          : undefined,
       },
       include: {
         images: {
@@ -53,6 +82,54 @@ export class ProductsService {
         categoryRelation: true,
       },
     });
+
+    // Processar imagens se existirem
+    if (images && images.length > 0) {
+      const imageRecords = [];
+      
+      for (let i = 0; i < images.length; i++) {
+        const img = images[i];
+        try {
+          let imageUrl: string;
+          
+          // Se a imagem tem 'data' (base64), salvar localmente
+          if (img.data) {
+            imageUrl = await this.saveBase64Image(img.data, img.filename || `image_${i}.${img.ext}`, product.id);
+          } else if (img.url) {
+            // Se já tem URL, usar diretamente
+            imageUrl = img.url;
+          } else {
+            continue;
+          }
+
+          imageRecords.push({
+            productId: product.id,
+            url: imageUrl,
+            order: img.order ?? i + 1,
+          });
+        } catch (error) {
+          this.logger.error(`Erro ao processar imagem ${i}: ${error.message}`);
+        }
+      }
+
+      // Criar registros de imagem no banco
+      if (imageRecords.length > 0) {
+        await this.prisma.image.createMany({
+          data: imageRecords,
+        });
+
+        // Recarregar produto com imagens
+        return this.prisma.product.findUnique({
+          where: { id: product.id },
+          include: {
+            images: {
+              orderBy: { order: 'asc' },
+            },
+            categoryRelation: true,
+          },
+        });
+      }
+    }
 
     return product;
   }
@@ -206,27 +283,23 @@ export class ProductsService {
       categoryId = category.id;
     }
 
-    // If images are provided, delete existing ones and create new ones
+    // If images are provided, delete existing ones
     if (images) {
       await this.prisma.image.deleteMany({
         where: { productId: id },
       });
     }
 
+    // Prepare update data
+    const updateData: any = { ...productData };
+    if (categoryId !== undefined) {
+      updateData.categoryId = categoryId;
+    }
+
+    // Update product
     const product = await this.prisma.product.update({
       where: { id },
-      data: {
-        ...productData,
-        ...(categoryId !== undefined && { categoryId }),
-        ...(images && {
-          images: {
-            create: images.map((img, index) => ({
-              url: img.url,
-              order: img.order ?? index + 1,
-            })),
-          },
-        }),
-      },
+      data: updateData,
       include: {
         images: {
           orderBy: { order: 'asc' },
@@ -234,6 +307,51 @@ export class ProductsService {
         categoryRelation: true,
       },
     });
+
+    // Process images if provided
+    if (images && images.length > 0) {
+      const imageRecords = [];
+      
+      for (let i = 0; i < images.length; i++) {
+        const img = images[i];
+        try {
+          let imageUrl: string;
+          
+          if (img.data) {
+            imageUrl = await this.saveBase64Image(img.data, img.filename || `image_${i}.${img.ext}`, product.id);
+          } else if (img.url) {
+            imageUrl = img.url;
+          } else {
+            continue;
+          }
+
+          imageRecords.push({
+            productId: product.id,
+            url: imageUrl,
+            order: img.order ?? i + 1,
+          });
+        } catch (error) {
+          this.logger.error(`Erro ao processar imagem ${i}: ${error.message}`);
+        }
+      }
+
+      if (imageRecords.length > 0) {
+        await this.prisma.image.createMany({
+          data: imageRecords,
+        });
+
+        // Reload product with images
+        return this.prisma.product.findUnique({
+          where: { id: product.id },
+          include: {
+            images: {
+              orderBy: { order: 'asc' },
+            },
+            categoryRelation: true,
+          },
+        });
+      }
+    }
 
     return product;
   }
@@ -268,8 +386,10 @@ export class ProductsService {
         }
 
         const product = await this.create(productDto);
-        createdProducts.push(product);
-        this.logger.log(`✅ Product created: ${product.name}`);
+        if (product) {
+          createdProducts.push(product);
+          this.logger.log(`✅ Product created: ${product.name}`);
+        }
       } catch (error) {
         const errorMsg = error.message || 'Erro desconhecido';
         this.logger.error(
