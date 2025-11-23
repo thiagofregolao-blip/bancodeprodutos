@@ -303,30 +303,46 @@
                 const progressBar = document.getElementById('uploadProgressBar');
                 const progressText = document.getElementById('uploadProgressText');
                 
-                // Animação de progresso
-                let progress = 0;
-                const interval = setInterval(() => {
-                    progress += 2;
-                    if (progress > 90) progress = 90; // Parar em 90% até completar
-                    progressBar.style.width = progress + '%';
-                    progressBar.textContent = progress + '%';
-                    progressText.textContent = `Salvando ${products.length} produtos... ${progress}%`;
-                }, 100);
-
-                const response = await fetchAPI('/api/admin/products/bulk', {
-                    method: 'POST',
-                    body: JSON.stringify({ products })
-                });
+                // Upload em lotes de 50 produtos por vez
+                const BATCH_SIZE = 50;
+                const totalProducts = products.length;
+                let savedCount = 0;
+                
+                progressBar.style.width = '0%';
+                progressBar.textContent = '0%';
+                
+                for (let i = 0; i < totalProducts; i += BATCH_SIZE) {
+                    const batch = products.slice(i, i + BATCH_SIZE);
+                    const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
+                    const totalBatches = Math.ceil(totalProducts / BATCH_SIZE);
+                    
+                    progressText.textContent = `Salvando lote ${batchNumber}/${totalBatches} (${batch.length} produtos)...`;
+                    
+                    try {
+                        await fetchAPI('/api/admin/products/bulk', {
+                            method: 'POST',
+                            body: JSON.stringify({ products: batch })
+                        });
+                        
+                        savedCount += batch.length;
+                        const progress = Math.round((savedCount / totalProducts) * 100);
+                        progressBar.style.width = progress + '%';
+                        progressBar.textContent = progress + '%';
+                        
+                    } catch (error) {
+                        console.error(`Erro no lote ${batchNumber}:`, error);
+                        throw new Error(`Falha no lote ${batchNumber}: ${error.message}`);
+                    }
+                }
 
                 // Completar progresso
-                clearInterval(interval);
                 progressBar.style.width = '100%';
                 progressBar.textContent = '100%';
                 progressBar.classList.remove('bg-blue-600');
                 progressBar.classList.add('bg-green-600');
-                progressText.textContent = `✅ ${products.length} produtos salvos com sucesso!`;
+                progressText.textContent = `✅ ${totalProducts} produtos salvos com sucesso!`;
 
-                showNotification(`${products.length} produtos salvos com sucesso!`, 'success');
+                showNotification(`${totalProducts} produtos salvos com sucesso!`, 'success');
                 
                 setTimeout(() => {
                     window.location.href = 'products.html';
