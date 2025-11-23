@@ -7,7 +7,14 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bodyParser: true,
+    rawBody: true,
+  });
+
+  // Aumentar limite de payload para 100MB
+  app.use(require('express').json({ limit: '100mb' }));
+  app.use(require('express').urlencoded({ limit: '100mb', extended: true }));
 
   // Servir arquivos estáticos
   app.useStaticAssets(join(__dirname, '..', 'public'), {
