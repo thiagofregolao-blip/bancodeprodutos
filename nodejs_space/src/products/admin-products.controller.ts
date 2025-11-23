@@ -10,13 +10,19 @@ import {
   UseGuards,
   ParseIntPipe,
   Logger,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiSecurity,
+  ApiConsumes,
 } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -86,5 +92,46 @@ export class AdminProductsController {
   getStats() {
     this.logger.log('GET /api/admin/products/stats');
     return this.productsService.getStats();
+  }
+
+  @Post('upload-image')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './uploads/products',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = extname(file.originalname);
+          cb(null, `product-${uniqueSuffix}${ext}`);
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
+          return cb(new Error('Only image files are allowed!'), false);
+        }
+        cb(null, true);
+      },
+      limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB max
+      },
+    }),
+  )
+  @ApiOperation({ summary: 'Upload a product image (Admin only)' })
+  @ApiConsumes('multipart/form-data')
+  @ApiResponse({ status: 201, description: 'Image uploaded successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  uploadImage(@UploadedFile() file: Express.Multer.File) {
+    this.logger.log(`POST /api/admin/products/upload-image - File: ${file.originalname}`);
+    
+    const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+    const imageUrl = `${baseUrl}/uploads/products/${file.filename}`;
+    
+    return {
+      message: 'Image uploaded successfully',
+      url: imageUrl,
+      filename: file.filename,
+      size: file.size,
+    };
   }
 }

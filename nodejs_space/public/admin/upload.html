@@ -180,24 +180,50 @@
                         const descricao = descricaoFile ? await descricaoFile.async('text') : '';
                         const info = infoFile ? await infoFile.async('text') : '';
 
-                        // Coletar imagens
-                        const images = [];
+                        // Coletar imagens do ZIP
+                        const imageFiles = [];
                         let imageCount = 0;
                         zip.forEach((path, zipEntry) => {
-                            if (path.startsWith(folder + '/') && /\.(jpg|jpeg|png|gif|webp)$/i.test(path)) {
+                            if (path.startsWith(folder + '/') && /\.(jpg|jpeg|png|gif|webp)$/i.test(path) && !zipEntry.dir) {
                                 imageCount++;
-                                // Por enquanto, vamos usar um placeholder
-                                // TODO: Implementar upload para cloud storage
-                                images.push({
-                                    url: `https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Placeholder.svg/958px-Placeholder.svg.png`,
+                                imageFiles.push({
+                                    path: path,
+                                    zipEntry: zipEntry,
                                     order: imageCount
                                 });
                             }
                         });
 
+                        // Upload das imagens para o servidor
+                        const uploadedImages = [];
+                        for (let j = 0; j < imageFiles.length; j++) {
+                            try {
+                                const imageFile = imageFiles[j];
+                                const blob = await imageFile.zipEntry.async('blob');
+                                const fileName = imageFile.path.split('/').pop();
+                                
+                                const formData = new FormData();
+                                formData.append('image', blob, fileName);
+
+                                const uploadResponse = await fetchAPI('/api/admin/products/upload-image', {
+                                    method: 'POST',
+                                    body: formData
+                                });
+
+                                if (uploadResponse.success && uploadResponse.data) {
+                                    uploadedImages.push({
+                                        url: uploadResponse.data.url,
+                                        order: imageFile.order
+                                    });
+                                }
+                            } catch (uploadError) {
+                                console.warn(`Erro ao fazer upload da imagem: ${uploadError.message}`);
+                            }
+                        }
+
                         // Parsear dados
                         const productData = parseProductData(folderName, descricao, info);
-                        productData.images = images;
+                        productData.images = uploadedImages;
                         
                         products.push(productData);
 

@@ -5,19 +5,22 @@ const API_KEY = '49e516cb-aeb1-44aa-9d76-f9341db7973a';
 
 // Função auxiliar para fazer requisições
 async function fetchAPI(endpoint, options = {}) {
-    const defaultOptions = {
-        headers: {
-            'Content-Type': 'application/json',
-            'X-API-Key': API_KEY,
-        },
+    // Se estamos enviando FormData, não definir Content-Type (o browser faz isso automaticamente)
+    const isFormData = options.body instanceof FormData;
+    
+    const defaultHeaders = {
+        'X-API-Key': API_KEY,
     };
+    
+    if (!isFormData) {
+        defaultHeaders['Content-Type'] = 'application/json';
+    }
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        ...defaultOptions,
         ...options,
         headers: {
-            ...defaultOptions.headers,
-            ...options.headers,
+            ...defaultHeaders,
+            ...(options.headers || {}),
         },
     });
 
