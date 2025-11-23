@@ -100,6 +100,18 @@
                 <i class="fas fa-save mr-2"></i>
                 Salvar Todos os Produtos
             </button>
+            
+            <!-- Barra de progresso do upload -->
+            <div id="uploadProgress" class="hidden mt-6">
+                <div class="bg-gray-200 rounded-full h-8 overflow-hidden">
+                    <div id="uploadProgressBar" class="bg-blue-600 h-8 rounded-full transition-all duration-300 flex items-center justify-center text-white font-bold text-sm">
+                        0%
+                    </div>
+                </div>
+                <p id="uploadProgressText" class="text-center mt-3 text-lg font-semibold text-gray-700">
+                    Preparando upload...
+                </p>
+            </div>
         </div>
     </div>
 
@@ -182,7 +194,6 @@
                     const folderName = folder.replace(/_/g, ' ');
 
                     const descricaoFile = zip.file(folder + '/descricao.txt');
-                    const infoFile = zip.file(folder + '/info.txt');
 
                     if (!descricaoFile) {
                         console.warn(`Pasta ${folder} não tem descricao.txt, pulando...`);
@@ -190,7 +201,6 @@
                     }
 
                     const descricao = await descricaoFile.async('text');
-                    const info = infoFile ? await infoFile.async('text') : '';
 
                     // Extrair imagens
                     const images = [];
@@ -208,7 +218,7 @@
                         }
                     }
 
-                    const productData = parseProductData(folderName, descricao, info);
+                    const productData = parseProductData(folderName, descricao, '');
                     productData.category = categoryName; // Nome da categoria (será criada se não existir)
                     productData.images = images; // Imagens em Base64
                     
@@ -285,13 +295,36 @@
             }
 
             try {
+                // Desabilitar botão e mostrar progresso
                 document.getElementById('saveBtn').disabled = true;
                 document.getElementById('saveBtn').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Salvando...';
+                document.getElementById('uploadProgress').classList.remove('hidden');
+                
+                const progressBar = document.getElementById('uploadProgressBar');
+                const progressText = document.getElementById('uploadProgressText');
+                
+                // Animação de progresso
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 2;
+                    if (progress > 90) progress = 90; // Parar em 90% até completar
+                    progressBar.style.width = progress + '%';
+                    progressBar.textContent = progress + '%';
+                    progressText.textContent = `Salvando ${products.length} produtos... ${progress}%`;
+                }, 100);
 
                 const response = await fetchAPI('/api/admin/products/bulk', {
                     method: 'POST',
                     body: JSON.stringify({ products })
                 });
+
+                // Completar progresso
+                clearInterval(interval);
+                progressBar.style.width = '100%';
+                progressBar.textContent = '100%';
+                progressBar.classList.remove('bg-blue-600');
+                progressBar.classList.add('bg-green-600');
+                progressText.textContent = `✅ ${products.length} produtos salvos com sucesso!`;
 
                 showNotification(`${products.length} produtos salvos com sucesso!`, 'success');
                 
@@ -303,6 +336,7 @@
                 showNotification('Erro ao salvar produtos: ' + error.message, 'error');
                 document.getElementById('saveBtn').disabled = false;
                 document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save mr-2"></i>Salvar Todos os Produtos';
+                document.getElementById('uploadProgress').classList.add('hidden');
             }
         });
     </script>
