@@ -23,11 +23,11 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger configuration
+  // Configuração do Swagger
   const config = new DocumentBuilder()
-    .setTitle('Products API')
+    .setTitle('API de Produtos')
     .setDescription(
-      'REST API for managing product database. This API provides endpoints for querying and managing products, categories, and images.',
+      'API REST para gerenciamento de banco de dados de produtos. Esta API fornece endpoints para consultar e gerenciar produtos, categorias e imagens.',
     )
     .setVersion('1.0')
     .addApiKey(
@@ -35,15 +35,15 @@ async function bootstrap() {
         type: 'apiKey',
         name: 'X-API-Key',
         in: 'header',
-        description: 'API Key for authentication',
+        description: 'Chave de API para autenticação',
       },
       'X-API-Key',
     )
-    .addTag('Products', 'Product management endpoints (requires API key)')
-    .addTag('Categories', 'Category listing endpoints (requires API key)')
-    .addTag('Admin', 'Administrative endpoints (requires admin API key)')
-    .addTag('Admin - Products', 'Product CRUD operations (requires admin API key)')
-    .addTag('Seed', 'Database initialization endpoint')
+    .addTag('Produtos', 'Endpoints de consulta de produtos (requer API key)')
+    .addTag('Categorias', 'Endpoints de listagem de categorias (requer API key)')
+    .addTag('Admin', 'Endpoints administrativos (requer API key de admin)')
+    .addTag('Admin - Produtos', 'Operações CRUD de produtos (requer API key de admin)')
+    .addTag('Seed', 'Endpoint de inicialização do banco de dados')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -108,9 +108,9 @@ async function bootstrap() {
     }
   `;
 
-  const customSiteTitle = 'Products API - Documentation';
+  const customSiteTitle = 'API de Produtos - Documentação';
 
-  SwaggerModule.setup('api/docs', app, document, {
+  SwaggerModule.setup('api-docs', app, document, {
     customCss,
     customSiteTitle,
     customfavIcon: 'https://nestjs.com/img/logo-small.svg',
@@ -126,8 +126,8 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
-  logger.log(`🚀 Application is running on: http://localhost:${port}`);
-  logger.log(`📚 API Documentation available at: http://localhost:${port}/api/docs`);
-  logger.log(`🔑 Don't forget to seed the database by calling POST /api/seed`);
+  logger.log(`🚀 Aplicação rodando em: http://localhost:${port}`);
+  logger.log(`📚 Documentação da API disponível em: http://localhost:${port}/api-docs`);
+  logger.log(`🔑 Não esqueça de inicializar o banco de dados chamando POST /api/seed`);
 }
 bootstrap();
