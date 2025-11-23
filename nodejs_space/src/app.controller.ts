@@ -1,30 +1,20 @@
-import { Controller, Get, Res } from '@nestjs/common';
+import { Controller, Get, Redirect } from '@nestjs/common';
 import { AppService } from './app.service';
-import { ApiTags, ApiOperation, ApiExcludeEndpoint } from '@nestjs/swagger';
-import type { Response } from 'express';
+import { ApiExcludeController } from '@nestjs/swagger';
 
-@ApiTags('Sistema')
+@ApiExcludeController()
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  @ApiExcludeEndpoint()
-  redirectToDashboard(@Res() res: Response) {
-    // Redireciona a página inicial para o Dashboard
-    return res.redirect('/admin/index.html');
+  @Redirect('/admin/upload-simple.html', 302)
+  root() {
+    return;
   }
 
-  @Get('info')
-  @ApiOperation({ summary: 'Informações do sistema' })
-  getInfo() {
-    return {
-      nome: 'Banco de Produtos - Sistema de Gerenciamento',
-      versao: '1.0.0',
-      descricao: 'Sistema completo com API REST e painel administrativo',
-      painel_admin: '/admin/index.html',
-      documentacao_api: '/api-docs',
-      status: 'online',
-    };
+  @Get('health')
+  getHealth() {
+    return { status: 'ok', timestamp: new Date().toISOString() };
   }
 }
