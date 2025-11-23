@@ -24,12 +24,15 @@ export class ProductsService {
   private async saveBase64Image(base64Data: string, filename: string, productId: number): Promise<string> {
     try {
       this.logger.log(`📥 saveBase64Image chamado - produto: ${productId}, arquivo: ${filename}`);
+      this.logger.log(`📊 Base64 recebido - tamanho: ${base64Data.length} chars, início: "${base64Data.substring(0, 100)}..."`);
       
       // Extrair o base64 puro (remover data:image/...;base64,)
       const matches = base64Data.match(/^data:image\/(\w+);base64,(.+)$/);
       if (!matches) {
-        this.logger.error(`❌ Formato de imagem inválido - primeira parte: ${base64Data.substring(0, 50)}...`);
-        throw new Error('Formato de imagem inválido');
+        this.logger.error(`❌ Formato de imagem inválido - NÃO MATCHOU O REGEX`);
+        this.logger.error(`📄 Primeira parte: ${base64Data.substring(0, 100)}...`);
+        this.logger.error(`📄 Tamanho total: ${base64Data.length}`);
+        throw new Error('Formato de imagem inválido - regex não bateu');
       }
 
       const ext = matches[1];
@@ -122,6 +125,7 @@ export class ProductsService {
           });
         } catch (error) {
           this.logger.error(`❌ Erro ao processar imagem ${i}: ${error.message}`);
+          this.logger.error(`Stack trace: ${error.stack}`);
         }
       }
 
