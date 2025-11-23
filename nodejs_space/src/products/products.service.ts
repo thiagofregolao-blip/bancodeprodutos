@@ -26,8 +26,8 @@ export class ProductsService {
       this.logger.log(`📥 saveBase64Image chamado - produto: ${productId}, arquivo: ${filename}`);
       this.logger.log(`📊 Base64 recebido - tamanho: ${base64Data.length} chars, início: "${base64Data.substring(0, 100)}..."`);
       
-      // Extrair o base64 puro (remover data:image/...;base64,)
-      const matches = base64Data.match(/^data:image\/(\w+);base64,(.+)$/);
+      // Extrair o base64 puro (aceita image/* ou application/octet-stream)
+      const matches = base64Data.match(/^data:(?:image\/(\w+)|application\/octet-stream);base64,(.+)$/);
       if (!matches) {
         this.logger.error(`❌ Formato de imagem inválido - NÃO MATCHOU O REGEX`);
         this.logger.error(`📄 Primeira parte: ${base64Data.substring(0, 100)}...`);
@@ -35,7 +35,8 @@ export class ProductsService {
         throw new Error('Formato de imagem inválido - regex não bateu');
       }
 
-      const ext = matches[1];
+      // Se veio como octet-stream, pega extensão do filename, senão do mime type
+      const ext = matches[1] || filename.split('.').pop() || 'jpg';
       const data = matches[2];
       const buffer = Buffer.from(data, 'base64');
       this.logger.log(`📊 Imagem processada - ext: ${ext}, tamanho: ${buffer.length} bytes`);
