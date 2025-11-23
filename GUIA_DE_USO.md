@@ -1,397 +1,225 @@
 
-# 🚀 Guia de Uso - API de Produtos
+# 🎯 Guia Rápido de Uso da API
 
-## ✅ Status: API FUNCIONANDO!
+## 📋 Resumo
 
-Sua API REST de produtos está rodando em **http://localhost:3000** e pronta para ser usada!
-
----
-
-## 🔑 Suas API Keys
-
-Você tem **2 API Keys** disponíveis:
-
-### 1️⃣ **API Key de Admin** (para gerenciar produtos)
-```
-49e516cb-aeb1-44aa-9d76-f9341db7973a
-```
-**Permissões:** Criar, editar, deletar e consultar produtos
-
-### 2️⃣ **API Key Read-Only** (para consultar produtos nos seus apps)
-```
-223bd275-39e4-4c35-998b-be537a5850f1
-```
-**Permissões:** Apenas consultar produtos (ideal para apps públicos)
+**URL Base:** `https://bancodeprodutos.abacusai.app`  
+**API Key:** `700cd62c-7c2e-4aa2-a580-803d9318761d`  
+**Header obrigatório:** `X-API-Key: 700cd62c-7c2e-4aa2-a580-803d9318761d`
 
 ---
 
-## 📚 Documentação Interativa
+## 🚀 Endpoints Principais
 
-Acesse a documentação Swagger (já em português!) em:
-**http://localhost:3000/api-docs**
-
-Lá você pode **testar todos os endpoints** diretamente no navegador!
-
----
-
-## 🌐 Endpoints Disponíveis
-
-### 📦 **Endpoints Públicos** (use a API Key Read-Only)
-
-#### 1. Listar Todos os Produtos
-```http
-GET /api/products
-Header: X-API-Key: 223bd275-39e4-4c35-998b-be537a5850f1
+### 1️⃣ Listar Produtos
+```bash
+curl -H "X-API-Key: 700cd62c-7c2e-4aa2-a580-803d9318761d" \
+  "https://bancodeprodutos.abacusai.app/api/products?limit=10"
 ```
 
-**Query Parameters (opcionais):**
-- `page` - Número da página (padrão: 1)
-- `limit` - Itens por página (padrão: 10)
-- `category` - Filtrar por categoria
-- `brand` - Filtrar por marca
-- `condition` - Filtrar por condição (novo, semi-novo)
-- `minPrice` - Preço mínimo
-- `maxPrice` - Preço máximo
-
-**Exemplo:** `GET /api/products?page=1&limit=20&category=iMac&condition=novo`
-
----
-
-#### 2. Buscar Produtos
-```http
-GET /api/products/search?q=macbook
-Header: X-API-Key: 223bd275-39e4-4c35-998b-be537a5850f1
+### 2️⃣ Buscar Produto por ID
+```bash
+curl -H "X-API-Key: 700cd62c-7c2e-4aa2-a580-803d9318761d" \
+  "https://bancodeprodutos.abacusai.app/api/products/1"
 ```
 
-**Query Parameters:**
-- `q` - Termo de busca (busca no nome e descrição)
-- `category` - Filtrar por categoria
-- `brand` - Filtrar por marca
-- `condition` - Filtrar por condição
-
----
-
-#### 3. Obter Detalhes de Um Produto
-```http
-GET /api/products/:id
-Header: X-API-Key: 223bd275-39e4-4c35-998b-be537a5850f1
+### 3️⃣ Buscar Produtos (Search)
+```bash
+curl -H "X-API-Key: 700cd62c-7c2e-4aa2-a580-803d9318761d" \
+  "https://bancodeprodutos.abacusai.app/api/products?search=xiaomi"
 ```
 
-**Exemplo:** `GET /api/products/1`
+### 4️⃣ Filtrar por Categoria
+```bash
+curl -H "X-API-Key: 700cd62c-7c2e-4aa2-a580-803d9318761d" \
+  "https://bancodeprodutos.abacusai.app/api/products?category=Celulares"
+```
 
----
-
-#### 4. Listar Categorias
-```http
-GET /api/categories
-Header: X-API-Key: 223bd275-39e4-4c35-998b-be537a5850f1
+### 5️⃣ Listar Categorias
+```bash
+curl -H "X-API-Key: 700cd62c-7c2e-4aa2-a580-803d9318761d" \
+  "https://bancodeprodutos.abacusai.app/api/categories"
 ```
 
 ---
 
-### 🔐 **Endpoints Administrativos** (use a API Key de Admin)
+## 💻 Exemplo JavaScript Simples
 
-#### 5. Criar Produto
-```http
-POST /api/admin/products
-Header: X-API-Key: 49e516cb-aeb1-44aa-9d76-f9341db7973a
-Content-Type: application/json
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste API Produtos</title>
+    <style>
+        body { font-family: Arial; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .product { border: 1px solid #ddd; padding: 15px; margin: 10px; display: inline-block; width: 250px; }
+        .product img { width: 100%; height: 200px; object-fit: cover; }
+        .price { color: #0066cc; font-weight: bold; font-size: 18px; }
+    </style>
+</head>
+<body>
+    <h1>Produtos</h1>
+    <input type="text" id="search" placeholder="Buscar produtos..." style="width: 300px; padding: 10px;">
+    <button onclick="searchProducts()">Buscar</button>
+    <div id="products"></div>
 
-Body:
+    <script>
+        const API_URL = 'https://bancodeprodutos.abacusai.app';
+        const API_KEY = '700cd62c-7c2e-4aa2-a580-803d9318761d';
+
+        async function loadProducts(query = '') {
+            const url = query 
+                ? `${API_URL}/api/products?search=${encodeURIComponent(query)}&limit=20`
+                : `${API_URL}/api/products?limit=20`;
+
+            const response = await fetch(url, {
+                headers: { 'X-API-Key': API_KEY }
+            });
+
+            const data = await response.json();
+            displayProducts(data.data);
+        }
+
+        function displayProducts(products) {
+            const container = document.getElementById('products');
+            container.innerHTML = products.map(p => `
+                <div class="product">
+                    ${p.images[0] ? `<img src="${API_URL}${p.images[0].url}" alt="${p.name}">` : ''}
+                    <h3>${p.name}</h3>
+                    <p>${p.category || ''}</p>
+                    <p class="price">${p.price ? 'R$ ' + p.price.toFixed(2) : 'Sem preço'}</p>
+                </div>
+            `).join('');
+        }
+
+        function searchProducts() {
+            const query = document.getElementById('search').value;
+            loadProducts(query);
+        }
+
+        // Carregar produtos ao abrir a página
+        loadProducts();
+
+        // Buscar ao pressionar Enter
+        document.getElementById('search').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') searchProducts();
+        });
+    </script>
+</body>
+</html>
+```
+
+Salve como `teste-api.html` e abra no navegador!
+
+---
+
+## 📱 URLs Importantes
+
+- **API Docs (Swagger):** https://bancodeprodutos.abacusai.app/api-docs
+- **Admin Dashboard:** https://bancodeprodutos.abacusai.app/admin
+- **Upload de Produtos:** https://bancodeprodutos.abacusai.app/admin/upload.html
+
+---
+
+## 🔑 Estrutura de Resposta
+
+### Produto
+```json
 {
-  "name": "MacBook Pro M3 14\"",
-  "description": "Notebook profissional...",
-  "price": 15999.90,
-  "category": "MacBook",
-  "condition": "novo",
-  "brand": "Apple",
-  "model": "MacBook Pro 14",
-  "specs": {
-    "processor": "M3 Pro",
-    "ram": "16GB",
-    "storage": "512GB SSD"
-  },
+  "id": 1,
+  "name": "Nome do Produto",
+  "description": "Descrição completa...",
+  "price": 499.90,
+  "category": "Celulares",
+  "categoryId": 1,
+  "condition": "Semi Novo",
+  "brand": "Xiaomi",
+  "model": "Redmi 9A",
   "images": [
-    {"url": "https://shop.arizona.edu/images/products/414973-apple-macbook-air-13-inch-m4-chip-16gb-memory-512gb-ssd-storage-laptop_media-midnight-1.jpg", "order": 1}
-  ]
-}
-```
-
----
-
-#### 6. Criar Múltiplos Produtos (Bulk)
-```http
-POST /api/admin/products/bulk
-Header: X-API-Key: 49e516cb-aeb1-44aa-9d76-f9341db7973a
-Content-Type: application/json
-
-Body:
-{
-  "products": [
-    { /* produto 1 */ },
-    { /* produto 2 */ }
-  ]
-}
-```
-
----
-
-#### 7. Atualizar Produto
-```http
-PATCH /api/admin/products/:id
-Header: X-API-Key: 49e516cb-aeb1-44aa-9d76-f9341db7973a
-Content-Type: application/json
-
-Body:
-{
-  "price": 14999.90,
-  "description": "Nova descrição..."
-}
-```
-
----
-
-#### 8. Deletar Produto
-```http
-DELETE /api/admin/products/:id
-Header: X-API-Key: 49e516cb-aeb1-44aa-9d76-f9341db7973a
-```
-
----
-
-#### 9. Estatísticas
-```http
-GET /api/admin/stats
-Header: X-API-Key: 49e516cb-aeb1-44aa-9d76-f9341db7973a
-```
-
----
-
-## 💻 Exemplos de Código
-
-### **JavaScript (Node.js / Replit)**
-
-```javascript
-// Buscar todos os produtos
-async function buscarProdutos() {
-  const response = await fetch('http://localhost:3000/api/products', {
-    headers: {
-      'X-API-Key': '223bd275-39e4-4c35-998b-be537a5850f1'
-    }
-  });
-  
-  const dados = await response.json();
-  
-  if (dados.success) {
-    console.log(`Total de produtos: ${dados.meta.total}`);
-    dados.data.forEach(produto => {
-      console.log(`${produto.name} - R$ ${produto.price}`);
-    });
-  }
-}
-
-buscarProdutos();
-```
-
-```javascript
-// Buscar produtos específicos
-async function buscarMacBooks() {
-  const response = await fetch(
-    'http://localhost:3000/api/products/search?q=macbook&condition=novo',
     {
-      headers: {
-        'X-API-Key': '223bd275-39e4-4c35-998b-be537a5850f1'
-      }
+      "id": 1,
+      "url": "/uploads/products/1_123_imagem_1.jpg"
     }
-  );
-  
-  const dados = await response.json();
-  return dados.data;
+  ],
+  "createdAt": "2025-11-23T20:30:59.811Z",
+  "updatedAt": "2025-11-23T20:30:59.811Z"
 }
 ```
+
+### Lista Paginada
+```json
+{
+  "data": [...], // Array de produtos
+  "total": 2621,
+  "page": 1,
+  "limit": 50,
+  "totalPages": 53
+}
+```
+
+---
+
+## ⚡ Parâmetros de Query
+
+| Parâmetro | Tipo | Descrição | Exemplo |
+|-----------|------|-----------|---------|
+| `page` | number | Número da página | `page=1` |
+| `limit` | number | Itens por página (máx: 100) | `limit=50` |
+| `search` | string | Buscar em nome/descrição | `search=xiaomi` |
+| `category` | string | Filtrar por categoria | `category=Celulares` |
+| `sortBy` | string | Campo para ordenar | `sortBy=price` |
+| `order` | string | asc ou desc | `order=desc` |
+
+---
+
+## 🎨 Como Exibir Imagens
+
+As URLs das imagens são relativas. Para exibir, adicione o domínio:
 
 ```javascript
-// Criar um produto (admin)
-async function criarProduto(produto) {
-  const response = await fetch('http://localhost:3000/api/admin/products', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-API-Key': '49e516cb-aeb1-44aa-9d76-f9341db7973a'
-    },
-    body: JSON.stringify(produto)
-  });
-  
-  return await response.json();
-}
+// URL retornada pela API
+const imageUrl = product.images[0].url;
+// Exemplo: "/uploads/products/1_123_imagem_1.jpg"
+
+// URL completa para exibir
+const fullUrl = `https://i.ytimg.com/vi/V0DeC9TkkkY/maxresdefault.jpg`;
+// Resultado: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Colour_18-col_PT_with_labels.png/1200px-Colour_18-col_PT_with_labels.png"
+```
+
+**Em HTML:**
+```html
+<img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/5_PAO_12M_2007-07-12.jpg" 
+     alt="Produto">
 ```
 
 ---
 
-### **Python**
+## 🛠️ Testando no Terminal
 
-```python
-import requests
+### Instalar httpie (mais legível que curl)
+```bash
+pip install httpie
+```
 
-# Buscar produtos
-def buscar_produtos():
-    headers = {'X-API-Key': '223bd275-39e4-4c35-998b-be537a5850f1'}
-    response = requests.get('http://localhost:3000/api/products', headers=headers)
-    dados = response.json()
-    
-    if dados['success']:
-        print(f"Total de produtos: {dados['meta']['total']}")
-        for produto in dados['data']:
-            print(f"{produto['name']} - R$ {produto['price']}")
+### Listar produtos
+```bash
+http GET https://bancodeprodutos.abacusai.app/api/products \
+  X-API-Key:700cd62c-7c2e-4aa2-a580-803d9318761d \
+  limit==10
+```
 
-buscar_produtos()
+### Buscar produto
+```bash
+http GET https://bancodeprodutos.abacusai.app/api/products/1 \
+  X-API-Key:700cd62c-7c2e-4aa2-a580-803d9318761d
 ```
 
 ---
 
-### **PHP**
+## 📞 Precisa de Ajuda?
 
-```php
-<?php
+- Veja a **documentação completa** em Swagger
+- Teste os endpoints diretamente pelo **Admin Dashboard**
+- Todos os endpoints retornam JSON padronizado
 
-// Buscar produtos
-function buscarProdutos() {
-    $headers = [
-        'X-API-Key: 223bd275-39e4-4c35-998b-be537a5850f1'
-    ];
-    
-    $context = stream_context_create([
-        'http' => [
-            'header' => implode("\r\n", $headers)
-        ]
-    ]);
-    
-    $response = file_get_contents('http://localhost:3000/api/products', false, $context);
-    $dados = json_decode($response, true);
-    
-    if ($dados['success']) {
-        foreach ($dados['data'] as $produto) {
-            echo "{$produto['name']} - R$ {$produto['price']}\n";
-        }
-    }
-}
-
-buscarProdutos();
-?>
-```
-
----
-
-## 🎯 Como Usar no Seu App do Replit
-
-1. **Copie a API Key Read-Only** (para consultar produtos)
-2. **Faça requisições HTTP** para a URL da API
-3. **Use nos seus projetos** (pode ser qualquer framework: React, Vue, Angular, etc.)
-
-### Exemplo com React:
-
-```jsx
-import { useState, useEffect } from 'react';
-
-function ListaProdutos() {
-  const [produtos, setProdutos] = useState([]);
-  
-  useEffect(() => {
-    fetch('http://localhost:3000/api/products', {
-      headers: {
-        'X-API-Key': '223bd275-39e4-4c35-998b-be537a5850f1'
-      }
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          setProdutos(data.data);
-        }
-      });
-  }, []);
-  
-  return (
-    <div>
-      <h1>Meus Produtos</h1>
-      {produtos.map(produto => (
-        <div key={produto.id}>
-          <h3>{produto.name}</h3>
-          <p>R$ {produto.price}</p>
-          {produto.images.map(img => (
-            <img key={img.id} src={img.url} alt={produto.name} />
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
-```
-
----
-
-## 📝 Formato das Respostas
-
-Todas as respostas seguem este padrão:
-
-**Sucesso:**
-```json
-{
-  "success": true,
-  "data": { /* seus dados aqui */ },
-  "meta": { /* informações de paginação */ }
-}
-```
-
-**Erro:**
-```json
-{
-  "success": false,
-  "error": "Mensagem de erro",
-  "statusCode": 400
-}
-```
-
----
-
-## 🚀 Próximos Passos
-
-### **1. Deploy da API** (quando estiver pronto)
-- Você vai receber uma URL pública (ex: `https://sua-api.abacus.ai`)
-- Substitua `localhost:3000` pela URL pública nos seus apps
-- A API ficará disponível 24/7
-
-### **2. Web App de Gerenciamento** (próxima etapa)
-Vou criar uma interface web moderna onde você poderá:
-- ✅ Fazer upload de arquivos ZIP com produtos
-- ✅ Ver todos os produtos em uma tabela bonita
-- ✅ Adicionar/editar/deletar produtos individualmente
-- ✅ Gerenciar imagens
-- ✅ Ver estatísticas
-
----
-
-## ❓ Perguntas Frequentes
-
-**Q: A API funciona em produção?**  
-A: Sim! Quando você fizer o deploy, ela ficará disponível 24/7 em uma URL pública.
-
-**Q: Posso usar em múltiplos apps?**  
-A: Sim! A mesma API pode ser consumida por quantos apps você quiser.
-
-**Q: As imagens ficam hospedadas onde?**  
-A: No próximo passo vamos configurar cloud storage (AWS S3, Cloudinary, etc) para hospedar as imagens.
-
-**Q: Como adiciono produtos do arquivo ZIP?**  
-A: Vou criar uma interface web onde você faz upload do ZIP e ele processa automaticamente!
-
----
-
-## 🎉 Tudo Pronto!
-
-Sua API está funcionando perfeitamente! Agora você pode:
-
-1. ✅ Testar os endpoints na documentação: http://localhost:3000/api-docs
-2. ✅ Integrar no seu app do Replit usando os exemplos acima
-3. ✅ Aguardar eu criar o Web App de gerenciamento
-
-**Quer que eu crie o Web App de gerenciamento agora?** 🚀
+**🎉 Pronto para integrar! 🚀**

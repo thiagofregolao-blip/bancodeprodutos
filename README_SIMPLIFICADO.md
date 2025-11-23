@@ -1,145 +1,163 @@
-# ✅ SISTEMA SIMPLIFICADO - SEM UPLOAD DE IMAGENS
 
-## 🎯 O QUE FOI CORRIGIDO:
+# 🔑 API Keys Atualizadas - IMPORTANTE!
 
-### ❌ PROBLEMAS ANTERIORES:
-- Upload de imagens falhando (400/500 errors)
-- Múltiplas categorias sendo criadas automaticamente
-- Sistema complexo e gastando créditos
-- Erros de parsing JSON
+## ⚠️ AÇÃO NECESSÁRIA: FAZER DEPLOY
 
-### ✅ SOLUÇÃO IMPLEMENTADA:
-- **Seleção de categoria ANTES do upload**
-- **SEM upload de imagens externas** (placeholder apenas)
-- **Sistema simples e direto**
-- **Sem gastos de API externa**
+As API Keys foram recriadas. **Você precisa fazer o DEPLOY para produção** para as mudanças funcionarem!
+
+### 🚀 Como fazer deploy:
+
+1. Clique no botão **"DEPLOY"** no topo da tela do ChatLLM
+2. Aguarde o deploy finalizar (cerca de 1-2 minutos)
+3. Teste novamente o upload em: https://bancodeprodutos.abacusai.app/admin/upload.html
 
 ---
 
-## 📋 COMO USAR:
+## 🔐 Nova API Key (Admin - Leitura e Escrita)
 
-### 1. Acesse o Sistema:
 ```
-URL Principal: https://bancodeprodutos.abacusai.app
-(Redireciona automaticamente para upload)
+700cd62c-7c2e-4aa2-a580-803d9318761d
 ```
 
-### 2. Fluxo de Upload:
-1. **Selecione a categoria** no dropdown
-2. **Arraste ou selecione o ZIP**
-3. Sistema processa os produtos
-4. **Clique em "Salvar Todos os Produtos"**
-5. Pronto! ✅
+**Use esta API Key para:**
+- ✅ Gerenciar produtos (criar, editar, deletar)
+- ✅ Upload em lote
+- ✅ Admin dashboard
+- ✅ Todas as operações
 
 ---
 
-## 📦 ESTRUTURA DO ZIP:
+## 🔓 API Key de Leitura (Read-Only)
 
 ```
-produtos.zip
-├── iMac_24_M1_novo/
-│   ├── descricao.txt  (OBRIGATÓRIO)
-│   ├── info.txt       (OPCIONAL)
-│   └── foto.jpg       (IGNORADO - não faz upload)
-│
-└── MacBook_Pro/
-    ├── descricao.txt  (OBRIGATÓRIO)
-    └── imagem.png     (IGNORADO - não faz upload)
+d95225f7-813c-4813-8765-557c4673529b
 ```
 
-### Formato do descricao.txt:
-```
-Nome do Produto
-Descrição do produto aqui
-Mais detalhes...
-R$ 1.500,00
-```
-
-- **Linha 1:** Nome do produto
-- **Linhas do meio:** Descrição
-- **Última linha:** Preço (opcional, formato: R$ 1.500,00 ou 1500)
+**Use esta API Key para:**
+- ✅ Listar produtos (GET /api/products)
+- ✅ Buscar produtos (GET /api/products/:id)
+- ✅ Listar categorias (GET /api/categories)
+- ❌ NÃO pode criar/editar/deletar
 
 ---
 
-## 🔑 API KEYS:
+## 💻 Código Atualizado para Usar no Seu App
 
-### Leitura (Consulta):
-```
-X-API-Key: 49e516cb-aeb1-44aa-9d76-f9341db7973a
-```
+### JavaScript / React / Vue / Angular
 
-### Admin (Gerenciamento):
-```
-X-API-Key: admin_key_secret_123
-```
+```javascript
+const API_URL = 'https://bancodeprodutos.abacusai.app';
+const API_KEY = '700cd62c-7c2e-4aa2-a580-803d9318761d'; // Admin (escrita)
+// OU
+const API_KEY = 'd95225f7-813c-4813-8765-557c4673529b'; // Apenas leitura
 
----
-
-## 📊 ENDPOINTS PRINCIPAIS:
-
-### Consulta de Produtos:
-```http
-GET /api/products
-GET /api/products/:id
-GET /api/products/search?q=macbook
-GET /api/categories
+async function getProducts() {
+  const response = await fetch(`${API_URL}/api/products?limit=20`, {
+    headers: { 'X-API-Key': API_KEY }
+  });
+  const data = await response.json();
+  return data.data;
+}
 ```
 
-### Admin:
-```http
-POST /api/admin/products/bulk
-DELETE /api/admin/products/:id
-DELETE /api/admin/categories/:id
+### Python
+
+```python
+import requests
+
+API_URL = 'https://bancodeprodutos.abacusai.app'
+API_KEY = '700cd62c-7c2e-4aa2-a580-803d9318761d'
+
+response = requests.get(
+    f'{API_URL}/api/products',
+    headers={'X-API-Key': API_KEY}
+)
+products = response.json()
+```
+
+### PHP
+
+```php
+<?php
+$API_URL = 'https://bancodeprodutos.abacusai.app';
+$API_KEY = '700cd62c-7c2e-4aa2-a580-803d9318761d';
+
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, "$API_URL/api/products");
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["X-API-Key: $API_KEY"]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+$products = json_decode($response, true);
+?>
+```
+
+### cURL (Terminal)
+
+```bash
+curl -H "X-API-Key: 700cd62c-7c2e-4aa2-a580-803d9318761d" \
+  "https://bancodeprodutos.abacusai.app/api/products?limit=10"
 ```
 
 ---
 
-## 🎨 PÁGINAS DISPONÍVEIS:
+## 📖 Documentação
 
-- **Upload:** `/admin/upload-simple.html` (PRINCIPAL)
-- **Produtos:** `/admin/products.html`
-- **Categorias:** `/admin/categories.html`
-- **Dashboard:** `/admin/index.html`
-- **API Docs:** `/api-docs`
+### Swagger (Teste Interativo)
+https://bancodeprodutos.abacusai.app/api-docs
 
----
-
-## ✅ VANTAGENS:
-
-✅ **Simples e direto**
-✅ **Sem dependências externas**
-✅ **Sem gastos de API**
-✅ **Sem erros de upload**
-✅ **Categoria controlada pelo usuário**
-✅ **Rápido e eficiente**
+**Como usar:**
+1. Clique em **"Authorize"** (cadeado verde no topo)
+2. Cole a API Key: `700cd62c-7c2e-4aa2-a580-803d9318761d`
+3. Clique em "Authorize"
+4. Teste os endpoints!
 
 ---
 
-## 🚀 DEPLOY:
+## ⚡ O que mudou?
 
-1. Clique no botão **"Deploy"** no topo
-2. Aguarde a conclusão
-3. Acesse: https://bancodeprodutos.abacusai.app
-4. Pronto para usar! ✅
+| Antes | Depois |
+|-------|--------|
+| `sk_admin_master456` | `700cd62c-7c2e-4aa2-a580-803d9318761d` |
 
----
-
-## 📝 NOTAS:
-
-- **Imagens:** Por enquanto, produtos não terão imagens reais
-- **Categorias:** Devem ser criadas manualmente antes do upload
-- **Preço:** Opcional no descricao.txt
-- **Performance:** Muito mais rápido sem upload de imagens
+**Todos os arquivos HTML do admin já foram atualizados automaticamente!**
 
 ---
 
-## 🔧 PRÓXIMOS PASSOS (SE NECESSÁRIO):
+## 🎯 Próximos Passos
 
-Se você quiser adicionar imagens no futuro:
-1. Configure um serviço de hospedagem (Cloudinary, ImgBB, etc)
-2. Adicione as URLs manualmente via API
-3. Ou use o endpoint `/api/admin/products/:id` para atualizar
+### 1️⃣ **FAZER DEPLOY (OBRIGATÓRIO)**
+Clique no botão **DEPLOY** para aplicar as mudanças em produção
+
+### 2️⃣ **Testar o Upload**
+Depois do deploy, teste:
+https://bancodeprodutos.abacusai.app/admin/upload.html
+
+### 3️⃣ **Atualizar seu App**
+Se você já estava usando a API antiga, atualize para a nova API Key:
+- Antiga: ~~`sk_admin_master456`~~
+- **Nova: `700cd62c-7c2e-4aa2-a580-803d9318761d`**
 
 ---
 
-**Sistema pronto para uso! Faça o deploy e teste.** 🎉
+## 🔒 Segurança
+
+⚠️ **Dica de Segurança:**
+- Para apps em produção, considere usar a API Key de **leitura** (`d95225f7-...`) no frontend
+- Use a API Key **admin** (`700cd62c-...`) apenas no backend/server-side
+- Nunca exponha a API Key admin em repositórios públicos
+
+---
+
+## ✅ Checklist
+
+- [ ] Fazer deploy da aplicação
+- [ ] Testar upload em produção
+- [ ] Atualizar API Key no seu app (se já estava usando)
+- [ ] Testar no Swagger
+- [ ] Guardar as novas API Keys em local seguro
+
+---
+
+**🎉 Depois do deploy, tudo estará funcionando perfeitamente!**

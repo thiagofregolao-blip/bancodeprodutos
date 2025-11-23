@@ -260,18 +260,51 @@
             let price = null;
 
             if (lines.length > 0) {
-                name = lines[0];
+                const firstLine = lines[0];
                 
-                if (lines.length > 1) {
-                    const lastLine = lines[lines.length - 1];
-                    const priceMatch = lastLine.match(/R?\$?\s*([\d.,]+)/);
+                // Se a primeira linha é muito longa (>100 caracteres), é provavelmente a descrição completa
+                // Vamos extrair um nome curto e usar o resto como descrição
+                if (firstLine.length > 100) {
+                    // Pegar as primeiras palavras até 80 caracteres como nome
+                    const words = firstLine.split(' ');
+                    let shortName = '';
+                    for (const word of words) {
+                        if ((shortName + ' ' + word).length > 80) break;
+                        shortName += (shortName ? ' ' : '') + word;
+                    }
+                    name = shortName || firstLine.substring(0, 80);
+                    description = firstLine; // A descrição é a linha completa
                     
-                    if (priceMatch) {
-                        const priceStr = priceMatch[1].replace(/\./g, '').replace(',', '.');
-                        price = parseFloat(priceStr);
-                        description = lines.slice(1, -1).join('\n');
-                    } else {
-                        description = lines.slice(1).join('\n');
+                    // Processar linhas restantes
+                    if (lines.length > 1) {
+                        const lastLine = lines[lines.length - 1];
+                        const priceMatch = lastLine.match(/R?\$?\s*([\d.,]+)/);
+                        
+                        if (priceMatch) {
+                            const priceStr = priceMatch[1].replace(/\./g, '').replace(',', '.');
+                            price = parseFloat(priceStr);
+                            if (lines.length > 2) {
+                                description += '\n' + lines.slice(1, -1).join('\n');
+                            }
+                        } else {
+                            description += '\n' + lines.slice(1).join('\n');
+                        }
+                    }
+                } else {
+                    // Lógica original para linhas curtas
+                    name = firstLine;
+                    
+                    if (lines.length > 1) {
+                        const lastLine = lines[lines.length - 1];
+                        const priceMatch = lastLine.match(/R?\$?\s*([\d.,]+)/);
+                        
+                        if (priceMatch) {
+                            const priceStr = priceMatch[1].replace(/\./g, '').replace(',', '.');
+                            price = parseFloat(priceStr);
+                            description = lines.slice(1, -1).join('\n');
+                        } else {
+                            description = lines.slice(1).join('\n');
+                        }
                     }
                 }
             }

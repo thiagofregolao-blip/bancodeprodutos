@@ -117,7 +117,7 @@
                             <h3 class="font-semibold text-gray-900 mb-1 truncate">${product.name}</h3>
                             <p class="text-sm text-gray-600 mb-2">${product.category || 'Sem categoria'}</p>
                             <div class="flex items-center justify-between">
-                                <p class="text-lg font-bold text-blue-600">${product.price ? 'R$ ' + parseFloat(product.price).toFixed(2) : 'Sem preço'}</p>
+                                <p class="text-lg font-bold text-blue-600">${product.price && !isNaN(parseFloat(product.price)) && parseFloat(product.price) > 0 ? 'R$ ' + parseFloat(product.price).toFixed(2) : 'Sem preço'}</p>
                                 ${product.condition ? `<span class="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded">${product.condition}</span>` : ''}
                             </div>
                         </div>
