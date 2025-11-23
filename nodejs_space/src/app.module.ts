@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProductsModule } from './products/products.module';
 import { CategoriesModule } from './categories/categories.module';
@@ -22,7 +24,9 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
     AdminModule,
     SeedModule,
   ],
+  controllers: [AppController],
   providers: [
+    AppService,
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,
