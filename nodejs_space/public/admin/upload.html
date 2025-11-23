@@ -190,11 +190,16 @@
 
                         // Parsear dados
                         const productData = parseProductData(folderName, descricao, info);
-                        productData.imageCount = imageCount;
+                        
+                        // Validar preço
+                        if (!productData.price || productData.price <= 0) {
+                            throw new Error(`Preço inválido: ${productData.price}`);
+                        }
+                        
                         products.push(productData);
 
                         // Adicionar à lista
-                        addProductToList(folderName, 'success', `${imageCount} imagens`);
+                        addProductToList(folderName, 'success', `R$ ${productData.price.toFixed(2)} - ${imageCount} imagens`);
                     } catch (error) {
                         addProductToList(folderName, 'error', error.message);
                     }
@@ -250,8 +255,21 @@
             const descLines = descricao.split('\n').filter(l => l.trim());
             const name = descLines[0] || folderName;
             const description = descLines.slice(1, -1).join('\n').trim() || 'Sem descrição';
-            const priceMatch = descLines[descLines.length - 1]?.match(/R?\$?\s*([\d.,]+)/);
-            const price = priceMatch ? priceMatch[1].replace(',', '.') : '0';
+            
+            // Extrair preço - procurar em todas as linhas, não só na última
+            let price = 0;
+            for (let i = descLines.length - 1; i >= 0; i--) {
+                const line = descLines[i];
+                const priceMatch = line.match(/R?\$?\s*([\d.,]+)/);
+                if (priceMatch) {
+                    const priceStr = priceMatch[1].replace(/\./g, '').replace(',', '.');
+                    const parsedPrice = parseFloat(priceStr);
+                    if (!isNaN(parsedPrice) && parsedPrice > 0) {
+                        price = parsedPrice;
+                        break;
+                    }
+                }
+            }
 
             let category = null;
             let brand = null;
@@ -290,7 +308,7 @@
             return {
                 name,
                 description,
-                price: parseFloat(price),
+                price,
                 category,
                 brand,
                 condition,
