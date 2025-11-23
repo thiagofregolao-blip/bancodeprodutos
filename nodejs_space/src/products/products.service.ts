@@ -23,28 +23,36 @@ export class ProductsService {
 
   private async saveBase64Image(base64Data: string, filename: string, productId: number): Promise<string> {
     try {
+      this.logger.log(`📥 saveBase64Image chamado - produto: ${productId}, arquivo: ${filename}`);
+      
       // Extrair o base64 puro (remover data:image/...;base64,)
       const matches = base64Data.match(/^data:image\/(\w+);base64,(.+)$/);
       if (!matches) {
+        this.logger.error(`❌ Formato de imagem inválido - primeira parte: ${base64Data.substring(0, 50)}...`);
         throw new Error('Formato de imagem inválido');
       }
 
       const ext = matches[1];
       const data = matches[2];
       const buffer = Buffer.from(data, 'base64');
+      this.logger.log(`📊 Imagem processada - ext: ${ext}, tamanho: ${buffer.length} bytes`);
 
       // Nome único para o arquivo
       const timestamp = Date.now();
       const uniqueFilename = `${productId}_${timestamp}_${filename}`;
       const filepath = path.join(this.uploadsDir, uniqueFilename);
+      this.logger.log(`💾 Salvando em: ${filepath}`);
 
       // Salvar arquivo
       fs.writeFileSync(filepath, buffer);
+      this.logger.log(`✅ Arquivo salvo com sucesso!`);
 
       // Retornar URL pública
-      return `/uploads/products/${uniqueFilename}`;
+      const publicUrl = `/uploads/products/${uniqueFilename}`;
+      this.logger.log(`🔗 URL pública: ${publicUrl}`);
+      return publicUrl;
     } catch (error) {
-      this.logger.error(`Erro ao salvar imagem: ${error.message}`);
+      this.logger.error(`❌ Erro ao salvar imagem: ${error.message}`);
       throw error;
     }
   }
@@ -85,6 +93,7 @@ export class ProductsService {
 
     // Processar imagens se existirem
     if (images && images.length > 0) {
+      this.logger.log(`📸 Processando ${images.length} imagens para produto ${product.id}`);
       const imageRecords = [];
       
       for (let i = 0; i < images.length; i++) {
@@ -94,11 +103,15 @@ export class ProductsService {
           
           // Se a imagem tem 'data' (base64), salvar localmente
           if (img.data) {
+            this.logger.log(`💾 Salvando imagem ${i+1}/${images.length} (${img.filename || `image_${i}.${img.ext}`})`);
             imageUrl = await this.saveBase64Image(img.data, img.filename || `image_${i}.${img.ext}`, product.id);
+            this.logger.log(`✅ Imagem salva: ${imageUrl}`);
           } else if (img.url) {
             // Se já tem URL, usar diretamente
+            this.logger.log(`🔗 Usando URL externa: ${img.url}`);
             imageUrl = img.url;
           } else {
+            this.logger.warn(`⚠️ Imagem ${i} sem data e sem URL, pulando...`);
             continue;
           }
 
@@ -108,7 +121,7 @@ export class ProductsService {
             order: img.order ?? i + 1,
           });
         } catch (error) {
-          this.logger.error(`Erro ao processar imagem ${i}: ${error.message}`);
+          this.logger.error(`❌ Erro ao processar imagem ${i}: ${error.message}`);
         }
       }
 
