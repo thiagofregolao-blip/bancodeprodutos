@@ -131,10 +131,20 @@ export class ProductsService {
       }
 
       // Criar registros de imagem no banco
+      this.logger.log(`📦 Total de imagens processadas: ${imageRecords.length}`);
       if (imageRecords.length > 0) {
-        await this.prisma.image.createMany({
-          data: imageRecords,
-        });
+        this.logger.log(`💿 Criando ${imageRecords.length} registros no banco...`);
+        this.logger.log(`📋 Dados: ${JSON.stringify(imageRecords, null, 2)}`);
+        
+        try {
+          await this.prisma.image.createMany({
+            data: imageRecords,
+          });
+          this.logger.log(`✅ Registros de imagem criados com sucesso!`);
+        } catch (error) {
+          this.logger.error(`❌ Erro ao criar registros: ${error.message}`);
+          this.logger.error(`Stack: ${error.stack}`);
+        }
 
         // Recarregar produto com imagens
         return this.prisma.product.findUnique({
