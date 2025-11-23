@@ -22,7 +22,7 @@ async function bootstrap() {
   });
   
   // Servir imagens dos produtos
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+  app.useStaticAssets(join(__dirname, '..', '..', 'uploads'), {
     prefix: '/uploads',
   });
 
