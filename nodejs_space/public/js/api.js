@@ -32,13 +32,23 @@ async function fetchAPI(endpoint, options = {}) {
 // Funções de notificação
 function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-50 ${
-        type === 'success' ? 'bg-green-600' : 'bg-red-600'
+    
+    const bgColors = {
+        success: 'bg-green-600',
+        error: 'bg-red-600',
+        warning: 'bg-yellow-600',
+        info: 'bg-blue-600'
+    };
+    
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-50 max-w-md ${
+        bgColors[type] || bgColors.success
     }`;
-    notification.textContent = message;
+    notification.innerHTML = message;
     document.body.appendChild(notification);
 
+    const duration = type === 'warning' ? 5000 : 3000;
+    
     setTimeout(() => {
         notification.remove();
-    }, 3000);
+    }, duration);
 }

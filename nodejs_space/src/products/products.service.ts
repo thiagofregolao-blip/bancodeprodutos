@@ -255,21 +255,47 @@ export class ProductsService {
     this.logger.log(`Bulk creating ${products.length} products`);
 
     const createdProducts = [];
+    const errors = [];
 
-    for (const productDto of products) {
+    for (let i = 0; i < products.length; i++) {
+      const productDto = products[i];
       try {
+        this.logger.log(`Creating product ${i + 1}/${products.length}: ${productDto.name}`);
+        
+        // Validação básica
+        if (!productDto.name || productDto.name.trim() === '') {
+          throw new Error('Nome do produto não pode estar vazio');
+        }
+        
+        if (!productDto.price || isNaN(Number(productDto.price))) {
+          throw new Error(`Preço inválido: ${productDto.price}`);
+        }
+
         const product = await this.create(productDto);
         createdProducts.push(product);
+        this.logger.log(`✅ Product created: ${product.name}`);
       } catch (error) {
+        const errorMsg = error.message || 'Erro desconhecido';
         this.logger.error(
-          `Error creating product ${productDto.name}: ${error.message}`,
+          `❌ Error creating product ${productDto.name}: ${errorMsg}`,
         );
+        errors.push({
+          product: productDto.name,
+          error: errorMsg,
+        });
       }
     }
 
+    this.logger.log(
+      `Bulk create completed: ${createdProducts.length}/${products.length} products created, ${errors.length} errors`,
+    );
+
     return {
+      success: createdProducts.length > 0,
       created: createdProducts.length,
       total: products.length,
+      errors: errors.length,
+      errorDetails: errors,
       products: createdProducts,
     };
   }

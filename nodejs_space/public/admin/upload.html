@@ -205,15 +205,38 @@
                 // Enviar para API
                 if (products.length > 0) {
                     try {
+                        console.log('Enviando produtos:', products);
                         const response = await fetchAPI('/api/admin/products/bulk', {
                             method: 'POST',
                             body: JSON.stringify({ products }),
                         });
-                        showNotification(`✅ ${products.length} produtos criados com sucesso!`, 'success');
-                        setTimeout(() => {
-                            window.location.href = 'products.html';
-                        }, 2000);
+                        console.log('Resposta da API:', response);
+                        
+                        if (response.success) {
+                            showNotification(
+                                `✅ ${response.created} de ${response.total} produtos criados com sucesso!`,
+                                'success'
+                            );
+                            
+                            // Mostrar erros se houver
+                            if (response.errors > 0) {
+                                const errorList = response.errorDetails.map(e => 
+                                    `<li><strong>${e.product}:</strong> ${e.error}</li>`
+                                ).join('');
+                                showNotification(
+                                    `⚠️ ${response.errors} produto(s) com erro:<br><ul class="text-left mt-2">${errorList}</ul>`,
+                                    'warning'
+                                );
+                            }
+                            
+                            setTimeout(() => {
+                                window.location.href = 'products.html';
+                            }, 3000);
+                        } else {
+                            throw new Error('Nenhum produto foi criado');
+                        }
                     } catch (error) {
+                        console.error('Erro completo:', error);
                         showNotification('❌ Erro ao salvar produtos: ' + error.message, 'error');
                     }
                 }
