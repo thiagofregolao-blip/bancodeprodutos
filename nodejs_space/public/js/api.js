@@ -1,0 +1,44 @@
+
+// Configuração da API
+const API_BASE_URL = window.location.origin;
+const API_KEY = '49e516cb-aeb1-44aa-9d76-f9341db7973a';
+
+// Função auxiliar para fazer requisições
+async function fetchAPI(endpoint, options = {}) {
+    const defaultOptions = {
+        headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': API_KEY,
+        },
+    };
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...defaultOptions,
+        ...options,
+        headers: {
+            ...defaultOptions.headers,
+            ...options.headers,
+        },
+    });
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(error.error || 'Erro na requisição');
+    }
+
+    return response.json();
+}
+
+// Funções de notificação
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-50 ${
+        type === 'success' ? 'bg-green-600' : 'bg-red-600'
+    }`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}

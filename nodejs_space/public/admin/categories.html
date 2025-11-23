@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categorias - Gerenciador</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-md mb-8">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-box text-blue-600 text-2xl"></i>
+                <h1 class="text-2xl font-bold text-gray-800">Gerenciador de Produtos</h1>
+            </div>
+            <div class="flex space-x-6">
+                <a href="index.html" class="text-gray-600 hover:text-blue-600">Dashboard</a>
+                <a href="products.html" class="text-gray-600 hover:text-blue-600">Produtos</a>
+                <a href="upload.html" class="text-gray-600 hover:text-blue-600">Upload</a>
+                <a href="categories.html" class="text-blue-600 font-semibold">Categorias</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 max-w-4xl">
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900">Categorias</h2>
+            <p class="text-gray-600 mt-1">Lista de todas as categorias disponíveis</p>
+        </div>
+
+        <div id="categoriesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Categorias serão carregadas aqui -->
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script>
+        async function loadCategories() {
+            try {
+                const response = await fetchAPI('/api/categories');
+                renderCategories(response.data);
+            } catch (error) {
+                console.error('Erro ao carregar categorias:', error);
+                showNotification('Erro ao carregar categorias', 'error');
+            }
+        }
+
+        function renderCategories(categories) {
+            const grid = document.getElementById('categoriesGrid');
+            
+            if (!categories || categories.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">Nenhuma categoria encontrada.</div>';
+                return;
+            }
+
+            grid.innerHTML = categories.map(category => `
+                <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
+                    <div class="flex items-center gap-3">
+                        <div class="p-3 bg-blue-50 rounded-lg">
+                            <i class="fas fa-folder text-blue-600 text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900">${category.name}</h3>
+                            <p class="text-sm text-gray-600">${category.slug}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        loadCategories();
+    </script>
+</body>
+</html>

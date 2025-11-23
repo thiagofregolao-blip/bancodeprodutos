@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Produtos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .card { @apply bg-white rounded-lg shadow-md p-6; }
+        .btn-primary { @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition; }
+        .btn-danger { @apply bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md mb-8">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-box text-blue-600 text-2xl"></i>
+                <h1 class="text-2xl font-bold text-gray-800">Gerenciador de Produtos</h1>
+            </div>
+            <div class="flex space-x-6">
+                <a href="index.html" class="text-blue-600 font-semibold">Dashboard</a>
+                <a href="products.html" class="text-gray-600 hover:text-blue-600">Produtos</a>
+                <a href="upload.html" class="text-gray-600 hover:text-blue-600">Upload</a>
+                <a href="categories.html" class="text-gray-600 hover:text-blue-600">Categorias</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900">Dashboard</h2>
+                <p class="text-gray-600 mt-1">Visão geral do seu banco de produtos</p>
+            </div>
+            <a href="upload.html" class="btn-primary">
+                <i class="fas fa-upload mr-2"></i>Fazer Upload de ZIP
+            </a>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8" id="statsCards">
+            <!-- Stats serão carregados aqui -->
+        </div>
+
+        <!-- Products by Category -->
+        <div class="card mb-8">
+            <h3 class="text-xl font-semibold mb-4">Produtos por Categoria</h3>
+            <div id="categoryStats" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <!-- Categorias serão carregadas aqui -->
+            </div>
+        </div>
+
+        <!-- Recent Products -->
+        <div class="card">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-semibold">Produtos Recentes</h3>
+                <a href="products.html" class="text-blue-600 hover:text-blue-700 font-medium">Ver todos →</a>
+            </div>
+            <div id="recentProducts" class="space-y-4">
+                <!-- Produtos serão carregados aqui -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script>
+        const API_KEY = '49e516cb-aeb1-44aa-9d76-f9341db7973a';
+        
+        async function loadDashboard() {
+            try {
+                // Carregar estatísticas
+                const stats = await fetchAPI('/api/admin/stats');
+                renderStats(stats.data);
+
+                // Carregar produtos recentes
+                const products = await fetchAPI('/api/products?limit=5');
+                renderRecentProducts(products.data);
+            } catch (error) {
+                console.error('Erro ao carregar dashboard:', error);
+            }
+        }
+
+        function renderStats(stats) {
+            const statsCards = document.getElementById('statsCards');
+            statsCards.innerHTML = `
+                <div class="card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 font-medium">Total de Produtos</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-2">${stats.totalProducts || 0}</p>
+                        </div>
+                        <div class="p-3 bg-blue-50 rounded-lg">
+                            <i class="fas fa-box text-blue-600 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 font-medium">Categorias</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-2">${stats.totalCategories || 0}</p>
+                        </div>
+                        <div class="p-3 bg-green-50 rounded-lg">
+                            <i class="fas fa-grid-2 text-green-600 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 font-medium">Novos</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-2">${stats.productsByCondition?.novo || 0}</p>
+                        </div>
+                        <div class="p-3 bg-purple-50 rounded-lg">
+                            <i class="fas fa-star text-purple-600 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 font-medium">Semi-novos</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-2">${stats.productsByCondition?.['semi-novo'] || 0}</p>
+                        </div>
+                        <div class="p-3 bg-orange-50 rounded-lg">
+                            <i class="fas fa-box-open text-orange-600 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Renderizar categorias
+            if (stats.productsByCategory) {
+                const categoryStats = document.getElementById('categoryStats');
+                categoryStats.innerHTML = Object.entries(stats.productsByCategory)
+                    .map(([category, count]) => `
+                        <div class="p-4 border border-gray-200 rounded-lg hover:border-blue-500 transition">
+                            <div class="text-2xl font-bold text-blue-600">${count}</div>
+                            <div class="text-sm text-gray-600">${category}</div>
+                        </div>
+                    `).join('');
+            }
+        }
+
+        function renderRecentProducts(products) {
+            const container = document.getElementById('recentProducts');
+            if (!products || products.length === 0) {
+                container.innerHTML = '<p class="text-center py-12 text-gray-500">Nenhum produto encontrado.</p>';
+                return;
+            }
+
+            container.innerHTML = products.map(product => `
+                <a href="product-detail.html?id=${product.id}" class="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition">
+                    ${product.images?.[0] 
+                        ? `<img src="${product.images[0].url}" alt="${product.name}" class="w-16 h-16 object-cover rounded-lg">`
+                        : '<div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center"><span class="text-gray-400 text-xs">Sem imagem</span></div>'
+                    }
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-semibold text-gray-900 truncate">${product.name}</h4>
+                        <p class="text-sm text-gray-600 truncate">${product.category || 'Sem categoria'}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-lg font-bold text-blue-600">R$ ${parseFloat(product.price).toFixed(2)}</p>
+                        ${product.condition ? `<span class="text-xs text-gray-500">${product.condition}</span>` : ''}
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        // Carregar dashboard ao iniciar
+        loadDashboard();
+    </script>
+</body>
+</html>

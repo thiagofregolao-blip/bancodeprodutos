@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload - Gerenciador</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md mb-8">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-box text-blue-600 text-2xl"></i>
+                <h1 class="text-2xl font-bold text-gray-800">Gerenciador de Produtos</h1>
+            </div>
+            <div class="flex space-x-6">
+                <a href="index.html" class="text-gray-600 hover:text-blue-600">Dashboard</a>
+                <a href="products.html" class="text-gray-600 hover:text-blue-600">Produtos</a>
+                <a href="upload.html" class="text-blue-600 font-semibold">Upload</a>
+                <a href="categories.html" class="text-gray-600 hover:text-blue-600">Categorias</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 max-w-4xl">
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-900">Upload de Produtos</h2>
+            <p class="text-gray-600 mt-1">Faça upload de um arquivo ZIP contendo as pastas dos produtos</p>
+        </div>
+
+        <!-- Dropzone -->
+        <div id="dropzone" class="bg-white border-2 border-dashed border-gray-300 rounded-lg p-12 text-center cursor-pointer hover:border-blue-500 transition mb-6">
+            <input type="file" id="fileInput" accept=".zip" class="hidden">
+            <i class="fas fa-file-archive text-gray-400 text-6xl mb-4"></i>
+            <p class="text-lg font-medium text-gray-900 mb-2">
+                Arraste um arquivo ZIP ou clique para selecionar
+            </p>
+            <p class="text-gray-600">Tamanho máximo: 500MB • Formato: ZIP</p>
+        </div>
+
+        <!-- Progress -->
+        <div id="progressSection" class="hidden bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">Processando...</h3>
+            <div class="mb-4">
+                <div class="bg-gray-200 rounded-full h-4 overflow-hidden">
+                    <div id="progressBar" class="bg-blue-600 h-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p id="progressText" class="text-center text-gray-600 mt-2">0 de 0 produtos</p>
+            </div>
+        </div>
+
+        <!-- Products List -->
+        <div id="productsSection" class="hidden bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-xl font-semibold mb-4">Produtos Processados</h3>
+            <div id="productsList" class="space-y-2 max-h-96 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script>
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropzone.addEventListener('click', () => fileInput.click());
+        
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('border-blue-500', 'bg-blue-50');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) processFile(files[0]);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) processFile(e.target.files[0]);
+        });
+
+        async function processFile(file) {
+            if (!file.name.endsWith('.zip')) {
+                showNotification('Por favor, selecione um arquivo ZIP', 'error');
+                return;
+            }
+
+            document.getElementById('progressSection').classList.remove('hidden');
+            document.getElementById('productsSection').classList.remove('hidden');
+
+            try {
+                const zip = await JSZip.loadAsync(file);
+                const folders = [];
+
+                // Encontrar pastas de produtos
+                zip.forEach((path, entry) => {
+                    if (entry.dir) {
+                        const folderName = path.replace(/\/$/, '');
+                        if (folderName && !folderName.includes('/')) {
+                            folders.push(folderName);
+                        }
+                    }
+                });
+
+                if (folders.length === 0) {
+                    showNotification('Nenhuma pasta encontrada no ZIP', 'error');
+                    return;
+                }
+
+                showNotification(`${folders.length} produtos encontrados!`, 'success');
+                
+                const products = [];
+                const productsList = document.getElementById('productsList');
+                productsList.innerHTML = '';
+
+                for (let i = 0; i < folders.length; i++) {
+                    const folder = folders[i];
+                    updateProgress(i, folders.length);
+
+                    try {
+                        // Ler arquivos
+                        const descricaoFile = zip.file(`${folder}/descricao.txt`);
+                        const infoFile = zip.file(`${folder}/info.txt`);
+
+                        const descricao = descricaoFile ? await descricaoFile.async('text') : '';
+                        const info = infoFile ? await infoFile.async('text') : '';
+
+                        // Parsear dados
+                        const productData = parseProductData(folder, descricao, info);
+                        products.push(productData);
+
+                        // Adicionar à lista
+                        addProductToList(folder, 'success');
+                    } catch (error) {
+                        addProductToList(folder, 'error', error.message);
+                    }
+                }
+
+                updateProgress(folders.length, folders.length);
+
+                // Enviar para API
+                if (products.length > 0) {
+                    try {
+                        await fetchAPI('/api/admin/products/bulk', {
+                            method: 'POST',
+                            body: JSON.stringify({ products }),
+                        });
+                        showNotification(`${products.length} produtos criados com sucesso!`, 'success');
+                        setTimeout(() => {
+                            window.location.href = 'products.html';
+                        }, 2000);
+                    } catch (error) {
+                        showNotification('Erro ao salvar produtos: ' + error.message, 'error');
+                    }
+                }
+            } catch (error) {
+                showNotification('Erro ao processar ZIP: ' + error.message, 'error');
+            }
+        }
+
+        function parseProductData(folderName, descricao, info) {
+            const descLines = descricao.split('\n').filter(l => l.trim());
+            const name = descLines[0] || folderName;
+            const description = descLines.slice(1, -1).join('\n').trim() || '';
+            const priceMatch = descLines[descLines.length - 1]?.match(/R?\$?\s*([\d.,]+)/);
+            const price = priceMatch ? priceMatch[1].replace(',', '.') : '0';
+
+            let category = null;
+            let brand = null;
+            let condition = null;
+            let urlOriginal = null;
+
+            const infoLines = info.split('\n');
+            infoLines.forEach(line => {
+                if (line.includes('Nome:')) category = line.split(':')[1]?.trim();
+                if (line.includes('URL:')) urlOriginal = line.split('URL:')[1]?.trim();
+            });
+
+            // Detectar marca e condição
+            const folderLower = folderName.toLowerCase();
+            if (folderLower.includes('apple')) brand = 'Apple';
+            if (folderLower.includes('dell')) brand = 'Dell';
+            if (folderLower.includes('hp')) brand = 'HP';
+            if (folderLower.includes('novo')) condition = 'novo';
+            if (folderLower.includes('semi') || folderLower.includes('seminovo')) condition = 'semi-novo';
+
+            if (!category) {
+                const parts = folderName.split('_');
+                category = parts[0] || 'Outros';
+            }
+
+            return {
+                name,
+                description,
+                price,
+                category,
+                brand,
+                condition,
+                urlOriginal,
+                specs: {},
+                images: [],
+            };
+        }
+
+        function updateProgress(current, total) {
+            const percent = Math.round((current / total) * 100);
+            document.getElementById('progressBar').style.width = `${percent}%`;
+            document.getElementById('progressText').textContent = `${current} de ${total} produtos`;
+        }
+
+        function addProductToList(name, status, error = '') {
+            const list = document.getElementById('productsList');
+            const icons = {
+                success: '<i class="fas fa-check-circle text-green-600 text-xl"></i>',
+                error: '<i class="fas fa-times-circle text-red-600 text-xl"></i>',
+            };
+
+            list.innerHTML += `
+                <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        ${icons[status]}
+                        <div>
+                            <p class="font-medium text-gray-900">${name}</p>
+                            ${error ? `<p class="text-sm text-red-600">${error}</p>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

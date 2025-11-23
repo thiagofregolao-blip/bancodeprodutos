@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Produto - Gerenciador</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-md mb-8">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-box text-blue-600 text-2xl"></i>
+                <h1 class="text-2xl font-bold text-gray-800">Gerenciador de Produtos</h1>
+            </div>
+            <div class="flex space-x-6">
+                <a href="index.html" class="text-gray-600 hover:text-blue-600">Dashboard</a>
+                <a href="products.html" class="text-blue-600 font-semibold">Produtos</a>
+                <a href="upload.html" class="text-gray-600 hover:text-blue-600">Upload</a>
+                <a href="categories.html" class="text-gray-600 hover:text-blue-600">Categorias</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 max-w-4xl">
+        <div class="flex items-center justify-between mb-6">
+            <a href="products.html" class="flex items-center gap-2 text-gray-600 hover:text-gray-900">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+            <button onclick="deleteProduct()" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg">
+                <i class="fas fa-trash mr-2"></i>Deletar Produto
+            </button>
+        </div>
+
+        <div id="productDetail" class="bg-white rounded-lg shadow-md p-6">
+            <!-- Detalhes serão carregados aqui -->
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+
+        async function loadProduct() {
+            if (!productId) {
+                showNotification('ID do produto não encontrado', 'error');
+                window.location.href = 'products.html';
+                return;
+            }
+
+            try {
+                const response = await fetchAPI(`/api/products/${productId}`);
+                renderProduct(response.data);
+            } catch (error) {
+                console.error('Erro ao carregar produto:', error);
+                showNotification('Erro ao carregar produto', 'error');
+            }
+        }
+
+        function renderProduct(product) {
+            const container = document.getElementById('productDetail');
+            
+            const imagesHTML = product.images && product.images.length > 0
+                ? `<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    ${product.images.map(img => `
+                        <img src="${img.url}" alt="${product.name}" class="w-full h-32 object-cover rounded-lg">
+                    `).join('')}
+                   </div>`
+                : '<div class="bg-gray-100 h-48 rounded-lg flex items-center justify-center mb-6"><span class="text-gray-400">Sem imagens</span></div>';
+
+            container.innerHTML = `
+                <h1 class="text-3xl font-bold text-gray-900 mb-6">${product.name}</h1>
+                
+                ${imagesHTML}
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                        <p class="text-gray-700">${product.description || 'Sem descrição'}</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Preço</label>
+                            <p class="text-2xl font-bold text-blue-600">R$ ${parseFloat(product.price).toFixed(2)}</p>
+                        </div>
+
+                        ${product.category ? `
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+                            <p class="text-gray-900">${product.category}</p>
+                        </div>
+                        ` : ''}
+
+                        ${product.brand ? `
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Marca</label>
+                            <p class="text-gray-900">${product.brand}</p>
+                        </div>
+                        ` : ''}
+
+                        ${product.model ? `
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Modelo</label>
+                            <p class="text-gray-900">${product.model}</p>
+                        </div>
+                        ` : ''}
+
+                        ${product.condition ? `
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Condição</label>
+                            <p class="text-gray-900">${product.condition}</p>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    ${product.specs && Object.keys(product.specs).length > 0 ? `
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Especificações</label>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <pre class="text-sm text-gray-700">${JSON.stringify(product.specs, null, 2)}</pre>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        async function deleteProduct() {
+            if (!confirm('Tem certeza que deseja deletar este produto?')) {
+                return;
+            }
+
+            try {
+                await fetchAPI(`/api/admin/products/${productId}`, {
+                    method: 'DELETE',
+                });
+                showNotification('Produto deletado com sucesso!', 'success');
+                setTimeout(() => {
+                    window.location.href = 'products.html';
+                }, 1500);
+            } catch (error) {
+                console.error('Erro ao deletar produto:', error);
+                showNotification('Erro ao deletar produto', 'error');
+            }
+        }
+
+        loadProduct();
+    </script>
+</body>
+</html>
