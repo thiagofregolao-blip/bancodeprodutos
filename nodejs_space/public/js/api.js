@@ -1,7 +1,7 @@
 
 // Configuração da API
 const API_BASE_URL = window.location.origin;
-const API_KEY = '49e516cb-aeb1-44aa-9d76-f9341db7973a';
+const API_KEY = 'sk_admin_master456';
 
 // Função auxiliar para fazer requisições
 async function fetchAPI(endpoint, options = {}) {
