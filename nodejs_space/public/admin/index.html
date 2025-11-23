@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -7,11 +6,6 @@
     <title>Gerenciador de Produtos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .card { @apply bg-white rounded-lg shadow-md p-6; }
-        .btn-primary { @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition; }
-        .btn-danger { @apply bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition; }
-    </style>
 </head>
 <body class="bg-gray-50">
     <!-- Navbar -->
@@ -37,58 +31,77 @@
                 <h2 class="text-3xl font-bold text-gray-900">Dashboard</h2>
                 <p class="text-gray-600 mt-1">Visão geral do seu banco de produtos</p>
             </div>
-            <a href="upload.html" class="btn-primary">
+            <a href="upload.html" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition">
                 <i class="fas fa-upload mr-2"></i>Fazer Upload de ZIP
             </a>
         </div>
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8" id="statsCards">
-            <!-- Stats serão carregados aqui -->
-        </div>
-
-        <!-- Products by Category -->
-        <div class="card mb-8">
-            <h3 class="text-xl font-semibold mb-4">Produtos por Categoria</h3>
-            <div id="categoryStats" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <!-- Categorias serão carregadas aqui -->
+            <div class="bg-white rounded-lg shadow-md p-6 animate-pulse">
+                <div class="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
+                <div class="h-8 bg-gray-200 rounded w-1/2"></div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6 animate-pulse">
+                <div class="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
+                <div class="h-8 bg-gray-200 rounded w-1/2"></div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6 animate-pulse">
+                <div class="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
+                <div class="h-8 bg-gray-200 rounded w-1/2"></div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6 animate-pulse">
+                <div class="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
+                <div class="h-8 bg-gray-200 rounded w-1/2"></div>
             </div>
         </div>
 
+        <!-- Products by Category -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h3 class="text-xl font-semibold mb-4">Produtos por Categoria</h3>
+            <div id="categoryStats" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+        </div>
+
         <!-- Recent Products -->
-        <div class="card">
+        <div class="bg-white rounded-lg shadow-md p-6">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-xl font-semibold">Produtos Recentes</h3>
                 <a href="products.html" class="text-blue-600 hover:text-blue-700 font-medium">Ver todos →</a>
             </div>
-            <div id="recentProducts" class="space-y-4">
-                <!-- Produtos serão carregados aqui -->
-            </div>
+            <div id="recentProducts" class="space-y-4"></div>
         </div>
     </div>
 
-    <script src="/js/api.js"></script>
     <script>
         const API_KEY = '49e516cb-aeb1-44aa-9d76-f9341db7973a';
         
         async function loadDashboard() {
             try {
                 // Carregar estatísticas
-                const stats = await fetchAPI('/api/admin/stats');
-                renderStats(stats.data);
+                const statsResponse = await fetch('/api/admin/stats', {
+                    headers: { 'X-API-Key': API_KEY }
+                });
+                const statsData = await statsResponse.json();
+                if (statsData.success) {
+                    renderStats(statsData.data);
+                }
 
                 // Carregar produtos recentes
-                const products = await fetchAPI('/api/products?limit=5');
-                renderRecentProducts(products.data);
+                const productsResponse = await fetch('/api/products?limit=5', {
+                    headers: { 'X-API-Key': API_KEY }
+                });
+                const productsData = await productsResponse.json();
+                if (productsData.success) {
+                    renderRecentProducts(productsData.data);
+                }
             } catch (error) {
                 console.error('Erro ao carregar dashboard:', error);
             }
         }
 
         function renderStats(stats) {
-            const statsCards = document.getElementById('statsCards');
-            statsCards.innerHTML = `
-                <div class="card">
+            document.getElementById('statsCards').innerHTML = `
+                <div class="bg-white rounded-lg shadow-md p-6">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm text-gray-600 font-medium">Total de Produtos</p>
@@ -99,7 +112,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="card">
+                <div class="bg-white rounded-lg shadow-md p-6">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm text-gray-600 font-medium">Categorias</p>
@@ -110,38 +123,36 @@
                         </div>
                     </div>
                 </div>
-                <div class="card">
+                <div class="bg-white rounded-lg shadow-md p-6">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm text-gray-600 font-medium">Novos</p>
-                            <p class="text-3xl font-bold text-gray-900 mt-2">${stats.productsByCondition?.novo || 0}</p>
+                            <p class="text-sm text-gray-600 font-medium">Total de Imagens</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-2">${stats.totalImages || 0}</p>
                         </div>
                         <div class="p-3 bg-purple-50 rounded-lg">
-                            <i class="fas fa-star text-purple-600 text-2xl"></i>
+                            <i class="fas fa-image text-purple-600 text-2xl"></i>
                         </div>
                     </div>
                 </div>
-                <div class="card">
+                <div class="bg-white rounded-lg shadow-md p-6">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm text-gray-600 font-medium">Semi-novos</p>
-                            <p class="text-3xl font-bold text-gray-900 mt-2">${stats.productsByCondition?.['semi-novo'] || 0}</p>
+                            <p class="text-sm text-gray-600 font-medium">Média de Imagens</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-2">${parseFloat(stats.avgImagesPerProduct || 0).toFixed(1)}</p>
                         </div>
                         <div class="p-3 bg-orange-50 rounded-lg">
-                            <i class="fas fa-box-open text-orange-600 text-2xl"></i>
+                            <i class="fas fa-camera text-orange-600 text-2xl"></i>
                         </div>
                     </div>
                 </div>
             `;
 
-            // Renderizar categorias
-            if (stats.productsByCategory) {
-                const categoryStats = document.getElementById('categoryStats');
-                categoryStats.innerHTML = Object.entries(stats.productsByCategory)
-                    .map(([category, count]) => `
+            if (stats.productsByCategory && Array.isArray(stats.productsByCategory)) {
+                document.getElementById('categoryStats').innerHTML = stats.productsByCategory
+                    .map(item => `
                         <div class="p-4 border border-gray-200 rounded-lg hover:border-blue-500 transition">
-                            <div class="text-2xl font-bold text-blue-600">${count}</div>
-                            <div class="text-sm text-gray-600">${category}</div>
+                            <div class="text-2xl font-bold text-blue-600">${item.count}</div>
+                            <div class="text-sm text-gray-600">${item.category}</div>
                         </div>
                     `).join('');
             }
@@ -154,10 +165,12 @@
                 return;
             }
 
-            container.innerHTML = products.map(product => `
+            container.innerHTML = products.map(product => {
+                const imageUrl = product.images && product.images[0] ? product.images[0].url : null;
+                return `
                 <a href="product-detail.html?id=${product.id}" class="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition">
-                    ${product.images?.[0] 
-                        ? `<img src="${product.images[0].url}" alt="${product.name}" class="w-16 h-16 object-cover rounded-lg">`
+                    ${imageUrl 
+                        ? `<img src="${imageUrl}" alt="${product.name}" class="w-16 h-16 object-cover rounded-lg">`
                         : '<div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center"><span class="text-gray-400 text-xs">Sem imagem</span></div>'
                     }
                     <div class="flex-1 min-w-0">
@@ -169,11 +182,12 @@
                         ${product.condition ? `<span class="text-xs text-gray-500">${product.condition}</span>` : ''}
                     </div>
                 </a>
-            `).join('');
+            `;
+            }).join('');
         }
 
-        // Carregar dashboard ao iniciar
-        loadDashboard();
+        // Carregar dashboard ao carregar a página
+        window.addEventListener('DOMContentLoaded', loadDashboard);
     </script>
 </body>
 </html>
