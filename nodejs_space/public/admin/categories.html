@@ -56,17 +56,52 @@
 
             grid.innerHTML = categories.map(category => `
                 <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
-                    <div class="flex items-center gap-3">
-                        <div class="p-3 bg-blue-50 rounded-lg">
-                            <i class="fas fa-folder text-blue-600 text-2xl"></i>
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-center gap-3 flex-1">
+                            <div class="p-3 bg-blue-50 rounded-lg">
+                                <i class="fas fa-folder text-blue-600 text-2xl"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-900">${category.name}</h3>
+                                <p class="text-sm text-gray-600">${category.slug}</p>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    <i class="fas fa-box text-gray-400"></i> 
+                                    ${category._count.products} produto${category._count.products !== 1 ? 's' : ''}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="font-semibold text-gray-900">${category.name}</h3>
-                            <p class="text-sm text-gray-600">${category.slug}</p>
-                        </div>
+                        <button 
+                            onclick="deleteCategory(${category.id}, '${category.name}', ${category._count.products})"
+                            class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                            title="Excluir categoria"
+                        >
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 </div>
             `).join('');
+        }
+
+        async function deleteCategory(id, name, productCount) {
+            const confirmMessage = productCount > 0 
+                ? `Tem certeza que deseja excluir a categoria "${name}"?\n\nEsta categoria tem ${productCount} produto(s) associado(s). Os produtos NÃO serão excluídos, apenas desvinculados da categoria.`
+                : `Tem certeza que deseja excluir a categoria "${name}"?`;
+            
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            try {
+                const response = await fetchAPI(`/api/categories/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                showNotification(`✅ Categoria "${name}" excluída com sucesso!`, 'success');
+                loadCategories(); // Recarregar lista
+            } catch (error) {
+                console.error('Erro ao excluir categoria:', error);
+                showNotification('❌ Erro ao excluir categoria: ' + error.message, 'error');
+            }
         }
 
         loadCategories();

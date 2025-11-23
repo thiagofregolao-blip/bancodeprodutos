@@ -107,20 +107,29 @@
             }
 
             grid.innerHTML = products.map(product => `
-                <a href="product-detail.html?id=${product.id}" class="bg-white rounded-lg shadow-md hover:shadow-xl transition group">
-                    ${product.images?.[0] 
-                        ? `<img src="${product.images[0].url}" alt="${product.name}" class="w-full h-48 object-cover rounded-t-lg group-hover:scale-105 transition">`
-                        : '<div class="w-full h-48 bg-gray-200 rounded-t-lg flex items-center justify-center"><span class="text-gray-400">Sem imagem</span></div>'
-                    }
-                    <div class="p-4">
-                        <h3 class="font-semibold text-gray-900 mb-1 truncate">${product.name}</h3>
-                        <p class="text-sm text-gray-600 mb-2">${product.category || 'Sem categoria'}</p>
-                        <div class="flex items-center justify-between">
-                            <p class="text-lg font-bold text-blue-600">R$ ${parseFloat(product.price).toFixed(2)}</p>
-                            ${product.condition ? `<span class="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded">${product.condition}</span>` : ''}
+                <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition group relative">
+                    <a href="product-detail.html?id=${product.id}" class="block">
+                        ${product.images?.[0] 
+                            ? `<img src="${product.images[0].url}" alt="${product.name}" class="w-full h-48 object-cover rounded-t-lg group-hover:scale-105 transition">`
+                            : '<div class="w-full h-48 bg-gray-200 rounded-t-lg flex items-center justify-center"><span class="text-gray-400">Sem imagem</span></div>'
+                        }
+                        <div class="p-4">
+                            <h3 class="font-semibold text-gray-900 mb-1 truncate">${product.name}</h3>
+                            <p class="text-sm text-gray-600 mb-2">${product.category || 'Sem categoria'}</p>
+                            <div class="flex items-center justify-between">
+                                <p class="text-lg font-bold text-blue-600">${product.price ? 'R$ ' + parseFloat(product.price).toFixed(2) : 'Sem preço'}</p>
+                                ${product.condition ? `<span class="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded">${product.condition}</span>` : ''}
+                            </div>
                         </div>
-                    </div>
-                </a>
+                    </a>
+                    <button 
+                        onclick="deleteProduct(event, ${product.id}, '${product.name.replace(/'/g, "\\'")}')"
+                        class="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition opacity-0 group-hover:opacity-100 shadow-lg"
+                        title="Excluir produto"
+                    >
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             `).join('');
         }
 
@@ -154,6 +163,27 @@
             currentPage = page;
             loadProducts(page);
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function deleteProduct(event, id, name) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            if (!confirm(`Tem certeza que deseja excluir o produto:\n\n"${name}"\n\nEsta ação não pode ser desfeita!`)) {
+                return;
+            }
+
+            try {
+                await fetchAPI(`/api/admin/products/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                showNotification(`✅ Produto "${name}" excluído com sucesso!`, 'success');
+                loadProducts(currentPage); // Recarregar lista
+            } catch (error) {
+                console.error('Erro ao excluir produto:', error);
+                showNotification('❌ Erro ao excluir produto: ' + error.message, 'error');
+            }
         }
 
         // Enter para buscar
