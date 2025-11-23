@@ -1,0 +1,74 @@
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  slug      String    @unique
+  createdAt DateTime  @default(now()) @map("created_at")
+  products  Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id             Int      @id @default(autoincrement())
+  name           String
+  description    String   @db.Text
+  price          Decimal  @db.Decimal(10, 2)
+  category       String?
+  categoryId     Int?     @map("category_id")
+  condition      String? // "novo", "semi-novo"
+  brand          String?
+  model          String?
+  specs          Json?
+  urlOriginal    String?  @map("url_original") @db.Text
+  extractionDate DateTime? @map("extraction_date")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  
+  categoryRelation Category? @relation(fields: [categoryId], references: [id])
+  images           Image[]
+
+  @@index([name])
+  @@index([categoryId])
+  @@index([price])
+  @@index([brand])
+  @@index([condition])
+  @@map("products")
+}
+
+model Image {
+  id        Int      @id @default(autoincrement())
+  productId Int      @map("product_id")
+  url       String   @db.Text
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("images")
+}
+
+model ApiKey {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  name      String
+  isActive  Boolean  @default(true) @map("is_active")
+  isAdmin   Boolean  @default(false) @map("is_admin")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([key])
+  @@map("api_keys")
+}
