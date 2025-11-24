@@ -156,11 +156,11 @@ export class AdminService {
         this.logger.log('🗑️  Deleting all images...');
         
         // Usar executeRaw para deletar tudo rapidamente
-        deletedImages = await this.prisma.$executeRaw`DELETE FROM "Image"`;
+        deletedImages = await this.prisma.$executeRaw`DELETE FROM "images"`;
         this.logger.log(`✅ Deleted ${deletedImages} images`);
 
         this.logger.log('🗑️  Deleting all products...');
-        deletedProducts = await this.prisma.$executeRaw`DELETE FROM "Product"`;
+        deletedProducts = await this.prisma.$executeRaw`DELETE FROM "products"`;
         this.logger.log(`✅ Deleted ${deletedProducts} products`);
       }
 
