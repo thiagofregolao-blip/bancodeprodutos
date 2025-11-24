@@ -1,163 +1,145 @@
+# API DE PRODUTOS - GUIA SIMPLIFICADO
 
-# 🔑 API Keys Atualizadas - IMPORTANTE!
+## 🔥 A ÚNICA COISA QUE VOCÊ PRECISA SABER
 
-## ⚠️ AÇÃO NECESSÁRIA: FAZER DEPLOY
+**Adicione `&includeImages=false` em TODAS as buscas!**
 
-As API Keys foram recriadas. **Você precisa fazer o DEPLOY para produção** para as mudanças funcionarem!
-
-### 🚀 Como fazer deploy:
-
-1. Clique no botão **"DEPLOY"** no topo da tela do ChatLLM
-2. Aguarde o deploy finalizar (cerca de 1-2 minutos)
-3. Teste novamente o upload em: https://bancodeprodutos.abacusai.app/admin/upload.html
+Isso faz sua busca ficar **100x mais rápida** (de 20 segundos para 0.2 segundos).
 
 ---
 
-## 🔐 Nova API Key (Admin - Leitura e Escrita)
+## 🔑 SUA API KEY
 
 ```
-700cd62c-7c2e-4aa2-a580-803d9318761d
+ed126afe-92a8-415f-b886-a1b0fed24ff5
 ```
-
-**Use esta API Key para:**
-- ✅ Gerenciar produtos (criar, editar, deletar)
-- ✅ Upload em lote
-- ✅ Admin dashboard
-- ✅ Todas as operações
 
 ---
 
-## 🔓 API Key de Leitura (Read-Only)
+## 📝 EXEMPLO PRONTO PARA COPIAR E COLAR
 
-```
-d95225f7-813c-4813-8765-557c4673529b
-```
-
-**Use esta API Key para:**
-- ✅ Listar produtos (GET /api/products)
-- ✅ Buscar produtos (GET /api/products/:id)
-- ✅ Listar categorias (GET /api/categories)
-- ❌ NÃO pode criar/editar/deletar
-
----
-
-## 💻 Código Atualizado para Usar no Seu App
-
-### JavaScript / React / Vue / Angular
+### JavaScript
 
 ```javascript
-const API_URL = 'https://bancodeprodutos.abacusai.app';
-const API_KEY = '700cd62c-7c2e-4aa2-a580-803d9318761d'; // Admin (escrita)
-// OU
-const API_KEY = 'd95225f7-813c-4813-8765-557c4673529b'; // Apenas leitura
+// Copie e cole isto:
 
-async function getProducts() {
-  const response = await fetch(`${API_URL}/api/products?limit=20`, {
-    headers: { 'X-API-Key': API_KEY }
-  });
+async function buscarProdutos(termo) {
+  const response = await fetch(
+    `https://bancodeprodutos.abacusai.app/api/products/search?q=${termo}&includeImages=false&limit=20`,
+    {
+      headers: {
+        'X-API-Key': 'ed126afe-92a8-415f-b886-a1b0fed24ff5'
+      }
+    }
+  );
+  
   const data = await response.json();
-  return data.data;
+  return data.data; // Array com os produtos
 }
-```
 
-### Python
-
-```python
-import requests
-
-API_URL = 'https://bancodeprodutos.abacusai.app'
-API_KEY = '700cd62c-7c2e-4aa2-a580-803d9318761d'
-
-response = requests.get(
-    f'{API_URL}/api/products',
-    headers={'X-API-Key': API_KEY}
-)
-products = response.json()
+// Usar:
+const produtos = await buscarProdutos('iphone');
+console.log(produtos);
 ```
 
 ### PHP
 
 ```php
 <?php
-$API_URL = 'https://bancodeprodutos.abacusai.app';
-$API_KEY = '700cd62c-7c2e-4aa2-a580-803d9318761d';
+// Copie e cole isto:
 
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, "$API_URL/api/products");
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-curl_setopt($ch, CURLOPT_HTTPHEADER, ["X-API-Key: $API_KEY"]);
+function buscarProdutos($termo) {
+    $url = "https://bancodeprodutos.abacusai.app/api/products/search?" . http_build_query([
+        'q' => $termo,
+        'includeImages' => 'false',
+        'limit' => 20
+    ]);
+    
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'X-API-Key: ed126afe-92a8-415f-b886-a1b0fed24ff5'
+    ]);
+    
+    $response = curl_exec($ch);
+    curl_close($ch);
+    
+    $data = json_decode($response, true);
+    return $data['data'];
+}
 
-$response = curl_exec($ch);
-curl_close($ch);
-$products = json_decode($response, true);
+// Usar:
+$produtos = buscarProdutos('iphone');
+print_r($produtos);
 ?>
 ```
 
-### cURL (Terminal)
+---
+
+## 🎯 EXEMPLOS DE URLs
 
 ```bash
-curl -H "X-API-Key: 700cd62c-7c2e-4aa2-a580-803d9318761d" \
-  "https://bancodeprodutos.abacusai.app/api/products?limit=10"
+# Buscar "iphone" (RÁPIDO)
+https://bancodeprodutos.abacusai.app/api/products/search?q=iphone&includeImages=false
+
+# Buscar "samsung" (RÁPIDO)
+https://bancodeprodutos.abacusai.app/api/products/search?q=samsung&includeImages=false
+
+# Listar produtos com 1 foto
+https://bancodeprodutos.abacusai.app/api/products?page=1&limit=20&imageLimit=1
+
+# Ver produto específico (ID 123)
+https://bancodeprodutos.abacusai.app/api/products/123
+```
+
+**LEMBRE-SE:** Sempre incluir header `X-API-Key: ed126afe-92a8-415f-b886-a1b0fed24ff5`
+
+---
+
+## ⚠️ ERROS MAIS COMUNS
+
+### 1. Busca lenta (20-30 segundos)
+
+**PROBLEMA:** Você não adicionou `includeImages=false`
+
+```bash
+# ❌ ERRADO (lento)
+/api/products/search?q=iphone
+
+# ✅ CORRETO (rápido)
+/api/products/search?q=iphone&includeImages=false
+```
+
+### 2. Erro 401 (Unauthorized)
+
+**PROBLEMA:** Esqueceu de adicionar a API Key no header
+
+```javascript
+// ❌ ERRADO
+fetch('https://bancodeprodutos.abacusai.app/api/products/search?q=iphone')
+
+// ✅ CORRETO
+fetch('https://bancodeprodutos.abacusai.app/api/products/search?q=iphone&includeImages=false', {
+  headers: { 'X-API-Key': 'ed126afe-92a8-415f-b886-a1b0fed24ff5' }
+})
 ```
 
 ---
 
-## 📖 Documentação
+## 📚 MAIS INFORMAÇÕES
 
-### Swagger (Teste Interativo)
-https://bancodeprodutos.abacusai.app/api-docs
-
-**Como usar:**
-1. Clique em **"Authorize"** (cadeado verde no topo)
-2. Cole a API Key: `700cd62c-7c2e-4aa2-a580-803d9318761d`
-3. Clique em "Authorize"
-4. Teste os endpoints!
+- Guia rápido: `GUIA_DE_USO.md`
+- Guia completo: `GUIA_DE_INTEGRACAO.md`
+- Documentação: https://bancodeprodutos.abacusai.app/api-docs
 
 ---
 
-## ⚡ O que mudou?
+## 🚀 PRONTO!
 
-| Antes | Depois |
-|-------|--------|
-| `sk_admin_master456` | `700cd62c-7c2e-4aa2-a580-803d9318761d` |
+Isso é tudo que você precisa para começar. Copie o código acima e adapte para seu sistema.
 
-**Todos os arquivos HTML do admin já foram atualizados automaticamente!**
+**Dúvidas?** Leia os guias acima ou teste na documentação.
 
 ---
 
-## 🎯 Próximos Passos
-
-### 1️⃣ **FAZER DEPLOY (OBRIGATÓRIO)**
-Clique no botão **DEPLOY** para aplicar as mudanças em produção
-
-### 2️⃣ **Testar o Upload**
-Depois do deploy, teste:
-https://bancodeprodutos.abacusai.app/admin/upload.html
-
-### 3️⃣ **Atualizar seu App**
-Se você já estava usando a API antiga, atualize para a nova API Key:
-- Antiga: ~~`sk_admin_master456`~~
-- **Nova: `700cd62c-7c2e-4aa2-a580-803d9318761d`**
-
----
-
-## 🔒 Segurança
-
-⚠️ **Dica de Segurança:**
-- Para apps em produção, considere usar a API Key de **leitura** (`d95225f7-...`) no frontend
-- Use a API Key **admin** (`700cd62c-...`) apenas no backend/server-side
-- Nunca exponha a API Key admin em repositórios públicos
-
----
-
-## ✅ Checklist
-
-- [ ] Fazer deploy da aplicação
-- [ ] Testar upload em produção
-- [ ] Atualizar API Key no seu app (se já estava usando)
-- [ ] Testar no Swagger
-- [ ] Guardar as novas API Keys em local seguro
-
----
-
-**🎉 Depois do deploy, tudo estará funcionando perfeitamente!**
+**Atualizado em:** 24/11/2024
