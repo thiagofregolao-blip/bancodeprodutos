@@ -1,8 +1,5 @@
+# Dependencies
 **/node_modules
-.next
-.cache
-.build
-*.nfs*
 **/.yarn/
 !**/.yarn/patches
 !**/.yarn/plugins
@@ -12,9 +9,62 @@
 !**/.yarn/cache
 **/.yarn/build-state.yml
 **/.yarn/install-state.gz
+
+# Build outputs
 dist
 target
 out
-.deploy
-.logs
+.next
+.cache
+.build
 *.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.development
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.logs
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
+# Uploads (imagens são base64 inline, não precisamos do diretório)
+uploads/
+temp_uploads/
+
+# OS
+.DS_Store
+Thumbs.db
+*.nfs*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Deploy
+.deploy
+
+# Testing
+coverage/
+.nyc_output/
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+
+# Temp files
+*.tmp
+temp_seed_config.json
