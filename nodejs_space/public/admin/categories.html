@@ -84,11 +84,19 @@
 
         async function deleteCategory(id, name, productCount) {
             const confirmMessage = productCount > 0 
-                ? `Tem certeza que deseja excluir a categoria "${name}"?\n\nEsta categoria tem ${productCount} produto(s) associado(s). Os produtos NÃO serão excluídos, apenas desvinculados da categoria.`
+                ? `⚠️ ATENÇÃO! Esta ação é IRREVERSÍVEL!\n\nTem certeza que deseja excluir a categoria "${name}"?\n\n🗑️ ESTA CATEGORIA TEM ${productCount} PRODUTO(S) ASSOCIADO(S)\n\n❌ TODOS os produtos desta categoria serão DELETADOS PERMANENTEMENTE junto com suas imagens!\n\nDigite "CONFIRMAR" para prosseguir:`
                 : `Tem certeza que deseja excluir a categoria "${name}"?`;
             
-            if (!confirm(confirmMessage)) {
-                return;
+            if (productCount > 0) {
+                const userInput = prompt(confirmMessage);
+                if (userInput !== 'CONFIRMAR') {
+                    showNotification('❌ Exclusão cancelada', 'info');
+                    return;
+                }
+            } else {
+                if (!confirm(confirmMessage)) {
+                    return;
+                }
             }
 
             try {

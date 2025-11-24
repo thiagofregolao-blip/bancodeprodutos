@@ -37,7 +37,7 @@ model Product {
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
   
-  categoryRelation Category? @relation(fields: [categoryId], references: [id])
+  categoryRelation Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   images           Image[]
 
   @@index([name])
