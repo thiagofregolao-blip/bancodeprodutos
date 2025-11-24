@@ -313,10 +313,11 @@
                 const progressBar = document.getElementById('uploadProgressBar');
                 const progressText = document.getElementById('uploadProgressText');
                 
-                // Upload em lotes de 50 produtos por vez
-                const BATCH_SIZE = 50;
+                // Upload em lotes de 20 produtos (reduzido para evitar timeout)
+                const BATCH_SIZE = 20;
                 const totalProducts = products.length;
                 let savedCount = 0;
+                let failedBatches = [];
                 
                 progressBar.style.width = '0%';
                 progressBar.textContent = '0%';
@@ -328,35 +329,84 @@
                     
                     progressText.textContent = `Salvando lote ${batchNumber}/${totalBatches} (${batch.length} produtos)...`;
                     
-                    try {
-                        await fetchAPI('/api/admin/products/bulk', {
-                            method: 'POST',
-                            body: JSON.stringify({ products: batch })
-                        });
-                        
-                        savedCount += batch.length;
-                        const progress = Math.round((savedCount / totalProducts) * 100);
-                        progressBar.style.width = progress + '%';
-                        progressBar.textContent = progress + '%';
-                        
-                    } catch (error) {
-                        console.error(`Erro no lote ${batchNumber}:`, error);
-                        throw new Error(`Falha no lote ${batchNumber}: ${error.message}`);
+                    // Tentar 3 vezes antes de desistir
+                    let success = false;
+                    for (let retry = 0; retry < 3; retry++) {
+                        try {
+                            const controller = new AbortController();
+                            const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minutos
+                            
+                            await fetchAPI('/api/admin/products/bulk', {
+                                method: 'POST',
+                                body: JSON.stringify({ products: batch }),
+                                signal: controller.signal
+                            });
+                            
+                            clearTimeout(timeoutId);
+                            success = true;
+                            savedCount += batch.length;
+                            break;
+                            
+                        } catch (error) {
+                            console.error(`Tentativa ${retry + 1}/3 falhou no lote ${batchNumber}:`, error);
+                            if (retry === 2) {
+                                // Falhou 3 vezes, registrar e continuar
+                                failedBatches.push({
+                                    batchNumber,
+                                    products: batch.map(p => p.name),
+                                    error: error.message
+                                });
+                                console.error(`❌ Lote ${batchNumber} pulado após 3 tentativas`);
+                            } else {
+                                // Aguardar antes de tentar novamente
+                                await new Promise(resolve => setTimeout(resolve, 2000));
+                            }
+                        }
                     }
+                    
+                    const progress = Math.round(((i + batch.length) / totalProducts) * 100);
+                    progressBar.style.width = progress + '%';
+                    progressBar.textContent = progress + '%';
                 }
 
                 // Completar progresso
                 progressBar.style.width = '100%';
                 progressBar.textContent = '100%';
-                progressBar.classList.remove('bg-blue-600');
-                progressBar.classList.add('bg-green-600');
-                progressText.textContent = `✅ ${totalProducts} produtos salvos com sucesso!`;
-
-                showNotification(`${totalProducts} produtos salvos com sucesso!`, 'success');
                 
-                setTimeout(() => {
-                    window.location.href = 'products.html';
-                }, 2000);
+                if (failedBatches.length === 0) {
+                    // Sucesso total
+                    progressBar.classList.remove('bg-blue-600');
+                    progressBar.classList.add('bg-green-600');
+                    progressText.textContent = `✅ ${savedCount} produtos salvos com sucesso!`;
+                    showNotification(`${savedCount} produtos salvos com sucesso!`, 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'products.html';
+                    }, 2000);
+                } else {
+                    // Sucesso parcial
+                    progressBar.classList.remove('bg-blue-600');
+                    progressBar.classList.add('bg-yellow-600');
+                    
+                    const failedCount = failedBatches.reduce((sum, b) => sum + b.products.length, 0);
+                    progressText.innerHTML = `
+                        ⚠️ ${savedCount} salvos, ${failedCount} falharam<br>
+                        <span class="text-sm">Veja o console para detalhes dos lotes que falharam</span>
+                    `;
+                    
+                    console.error('❌ LOTES QUE FALHARAM:', failedBatches);
+                    
+                    showNotification(
+                        `${savedCount} produtos salvos. ${failedCount} falharam (veja console)`,
+                        'warning'
+                    );
+                    
+                    // Reabilitar botão para permitir retry
+                    setTimeout(() => {
+                        document.getElementById('saveBtn').disabled = false;
+                        document.getElementById('saveBtn').innerHTML = '<i class="fas fa-redo mr-2"></i>Tentar Novamente';
+                    }, 3000);
+                }
 
             } catch (error) {
                 showNotification('Erro ao salvar produtos: ' + error.message, 'error');
