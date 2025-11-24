@@ -150,18 +150,23 @@ export class AdminService {
       let deletedProducts = 0;
       let deletedImages = 0;
       let deletedCategories = 0;
+      let totalImages = 0;
+      let totalProducts = 0;
 
       if (deleteProducts) {
-        // Deletar TODOS de uma vez usando SQL direto para performance
-        this.logger.log('🗑️  Deleting all images...');
+        // Contar antes de deletar
+        totalImages = await this.prisma.image.count();
+        totalProducts = await this.prisma.product.count();
         
-        // Usar executeRaw para deletar tudo rapidamente
-        deletedImages = await this.prisma.$executeRaw`DELETE FROM "images"`;
-        this.logger.log(`✅ Deleted ${deletedImages} images`);
-
-        this.logger.log('🗑️  Deleting all products...');
-        deletedProducts = await this.prisma.$executeRaw`DELETE FROM "products"`;
-        this.logger.log(`✅ Deleted ${deletedProducts} products`);
+        this.logger.log(`🗑️  Truncating tables (${totalImages} images, ${totalProducts} products)...`);
+        
+        // TRUNCATE é MUITO mais rápido que DELETE (ignora rows individuais)
+        await this.prisma.$executeRaw`TRUNCATE TABLE "images", "products" RESTART IDENTITY CASCADE`;
+        
+        deletedImages = totalImages;
+        deletedProducts = totalProducts;
+        
+        this.logger.log(`✅ Truncated successfully`);
       }
 
       if (deleteCategories) {
