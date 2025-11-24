@@ -1,0 +1,125 @@
+╔══════════════════════════════════════════════════════════════╗
+║           🔗 CONECTAR PROJETO AO GITHUB                      ║
+╚══════════════════════════════════════════════════════════════╝
+
+✅ SEU PROJETO JÁ ESTÁ PREPARADO!
+
+📦 O que já foi feito:
+   ✅ Git inicializado
+   ✅ .gitignore configurado (secrets protegidos)
+   ✅ README.md completo criado
+   ✅ Commits organizados com histórico
+   ✅ Script de conexão criado
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 OPÇÃO 1: USAR SCRIPT AUTOMÁTICO (MAIS FÁCIL)
+
+1. Criar repositório no GitHub:
+   → https://github.com/new
+   
+2. Executar script:
+   cd /home/ubuntu/products_api
+   ./connect_github.sh
+
+3. Seguir instruções do script
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🛠️ OPÇÃO 2: FAZER MANUALMENTE
+
+1. Criar repositório no GitHub:
+   → https://github.com/new
+   → Nome: products-api
+   → Private ou Public
+   → NÃO marcar: README, .gitignore, license
+   → Criar!
+
+2. Copiar URL do repositório
+   Exemplo: https://github.com/seu-usuario/products-api.git
+
+3. Executar comandos:
+   cd /home/ubuntu/products_api
+   git remote add origin https://github.com/SEU_USUARIO/products-api.git
+   git push -u origin master
+
+4. Quando pedir senha:
+   → Use Personal Access Token (não senha do GitHub!)
+   → Criar token em: https://github.com/settings/tokens
+   → Marcar: repo (todos)
+   → Copiar token e colar como senha
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 DOCUMENTAÇÃO COMPLETA
+
+→ Guia detalhado: cat GUIA_GITHUB.md
+→ README do projeto: cat README.md
+→ Ver commits: git log --oneline
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️  IMPORTANTE - SEGURANÇA
+
+Arquivos que NÃO vão pro GitHub (já configurado):
+   ❌ .env (senhas e secrets)
+   ❌ node_modules/ (muito grande)
+   ❌ dist/ (código compilado)
+   ❌ uploads/ (imagens)
+
+NUNCA commite senhas ou API keys!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 COMANDOS ÚTEIS NO DIA A DIA
+
+Ver mudanças:
+   git status
+
+Salvar mudanças:
+   git add -A
+   git commit -m "descrição"
+   git push
+
+Pegar atualizações:
+   git pull
+
+Ver histórico:
+   git log --oneline --graph
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🆘 PROBLEMAS COMUNS
+
+Erro "remote already exists":
+   git remote remove origin
+   git remote add origin URL
+
+Erro "Authentication failed":
+   → Use Personal Access Token (não senha!)
+   → https://github.com/settings/tokens
+
+Erro "who you are":
+   git config user.name "Seu Nome"
+   git config user.email "seu@email.com"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ CHECKLIST
+
+Antes de conectar ao GitHub:
+   [✅] Repositório criado no GitHub
+   [✅] .gitignore configurado
+   [✅] Sem senhas no código
+   [✅] README atualizado
+   [ ] URL do repositório copiado
+   [ ] Personal Access Token criado
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 PRONTO PARA CONECTAR!
+
+Escolha a opção que preferir e siga os passos.
+Qualquer dúvida, leia o GUIA_GITHUB.md
+
+Boa sorte! 🚀
