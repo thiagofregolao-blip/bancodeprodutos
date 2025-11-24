@@ -156,7 +156,17 @@ export class ProductsService {
   }
 
   async findAll(filterDto: FilterProductsDto) {
-    const { page = 1, limit = 10, category, brand, condition, minPrice, maxPrice } = filterDto;
+    const { 
+      page = 1, 
+      limit = 10, 
+      category, 
+      brand, 
+      condition, 
+      minPrice, 
+      maxPrice,
+      includeImages = true,
+      imageLimit = 1
+    } = filterDto;
     const skip = (page - 1) * limit;
 
     const where: Prisma.ProductWhereInput = {};
@@ -183,17 +193,24 @@ export class ProductsService {
       }
     }
 
+    // Otimização: Incluir imagens apenas se solicitado
+    const includeClause: any = {
+      categoryRelation: true,
+    };
+
+    if (includeImages) {
+      includeClause.images = {
+        orderBy: { order: 'asc' },
+        take: imageLimit > 0 ? imageLimit : undefined,
+      };
+    }
+
     const [products, total] = await Promise.all([
       this.prisma.product.findMany({
         where,
         skip,
         take: limit,
-        include: {
-          images: {
-            orderBy: { order: 'asc' },
-          },
-          categoryRelation: true,
-        },
+        include: includeClause,
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.product.count({ where }),
@@ -206,6 +223,8 @@ export class ProductsService {
         limit,
         total,
         totalPages: Math.ceil(total / limit),
+        includeImages,
+        imageLimit: includeImages ? imageLimit : 0,
       },
     };
   }
@@ -229,7 +248,16 @@ export class ProductsService {
   }
 
   async search(searchDto: SearchProductsDto) {
-    const { q, page = 1, limit = 10, category, brand, condition } = searchDto;
+    const { 
+      q, 
+      page = 1, 
+      limit = 10, 
+      category, 
+      brand, 
+      condition,
+      includeImages = true,
+      imageLimit = 1
+    } = searchDto;
     const skip = (page - 1) * limit;
 
     const where: Prisma.ProductWhereInput = {
@@ -253,17 +281,24 @@ export class ProductsService {
       where.condition = { contains: condition, mode: 'insensitive' };
     }
 
+    // Otimização: Incluir imagens apenas se solicitado
+    const includeClause: any = {
+      categoryRelation: true,
+    };
+
+    if (includeImages) {
+      includeClause.images = {
+        orderBy: { order: 'asc' },
+        take: imageLimit > 0 ? imageLimit : undefined,
+      };
+    }
+
     const [products, total] = await Promise.all([
       this.prisma.product.findMany({
         where,
         skip,
         take: limit,
-        include: {
-          images: {
-            orderBy: { order: 'asc' },
-          },
-          categoryRelation: true,
-        },
+        include: includeClause,
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.product.count({ where }),
@@ -277,6 +312,8 @@ export class ProductsService {
         total,
         totalPages: Math.ceil(total / limit),
         query: q,
+        includeImages,
+        imageLimit: includeImages ? imageLimit : 0,
       },
     };
   }

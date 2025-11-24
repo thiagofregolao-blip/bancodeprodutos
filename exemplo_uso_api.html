@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exemplo de Uso da API Otimizada</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        
+        button {
+            padding: 15px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        
+        .options {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .product-card {
+            border: 2px solid #eee;
+            border-radius: 15px;
+            padding: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-color: #667eea;
+        }
+        
+        .product-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            background: #f0f0f0;
+        }
+        
+        .product-card h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #333;
+            min-height: 40px;
+        }
+        
+        .product-card .price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .product-card .brand {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 18px;
+        }
+        
+        .error {
+            background: #ff4444;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Exemplo de API Otimizada</h1>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Buscar produtos... (ex: iphone, samsung)">
+            <button onclick="searchProducts()">🔍 Buscar</button>
+        </div>
+        
+        <div class="options">
+            <label>
+                <input type="checkbox" id="includeImages" checked>
+                Incluir imagens
+            </label>
+            <label>
+                Limite de imagens:
+                <select id="imageLimit">
+                    <option value="1" selected>1 (Recomendado)</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="0">Todas</option>
+                </select>
+            </label>
+            <label>
+                Produtos por página:
+                <select id="pageLimit">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                </select>
+            </label>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Produtos Carregados</h3>
+                <div class="value" id="productCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Tempo de Resposta</h3>
+                <div class="value" id="responseTime">0ms</div>
+            </div>
+            <div class="stat-card">
+                <h3>Tamanho dos Dados</h3>
+                <div class="value" id="dataSize">0KB</div>
+            </div>
+            <div class="stat-card">
+                <h3>Economia</h3>
+                <div class="value" id="savings">-</div>
+            </div>
+        </div>
+        
+        <div id="error"></div>
+        <div id="loading" class="loading" style="display: none;">
+            Carregando produtos... ⏳
+        </div>
+        
+        <div id="products" class="products-grid"></div>
+    </div>
+    
+    <script>
+        const API_URL = 'https://bancodeprodutos.abacusai.app';
+        const API_KEY = 'ed126afe-92a8-415f-b886-a1b0fed24ff5';
+        
+        async function searchProducts() {
+            const query = document.getElementById('searchInput').value;
+            const includeImages = document.getElementById('includeImages').checked;
+            const imageLimit = document.getElementById('imageLimit').value;
+            const limit = document.getElementById('pageLimit').value;
+            
+            if (!query) {
+                alert('Digite algo para buscar!');
+                return;
+            }
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('products').innerHTML = '';
+            document.getElementById('error').innerHTML = '';
+            
+            const startTime = performance.now();
+            
+            try {
+                const url = `${API_URL}/api/products/search?q=${encodeURIComponent(query)}&includeImages=${includeImages}&imageLimit=${imageLimit}&limit=${limit}`;
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'X-API-Key': API_KEY
+                    }
+                });
+                
+                const endTime = performance.now();
+                const responseTime = Math.round(endTime - startTime);
+                
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+                
+                const text = await response.text();
+                const dataSize = new Blob([text]).size;
+                const data = JSON.parse(text);
+                
+                // Atualizar estatísticas
+                document.getElementById('productCount').textContent = data.data.length;
+                document.getElementById('responseTime').textContent = responseTime + 'ms';
+                document.getElementById('dataSize').textContent = (dataSize / 1024).toFixed(2) + 'KB';
+                
+                // Calcular economia (comparado com todas as imagens sem compressão)
+                const estimatedFullSize = data.data.length * 2000; // ~2MB por produto com todas imagens
+                const savings = Math.round((1 - dataSize / estimatedFullSize / 1024) * 100);
+                document.getElementById('savings').textContent = savings + '%';
+                
+                // Renderizar produtos
+                renderProducts(data.data);
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('error').innerHTML = `
+                    <div class="error">
+                        ❌ Erro ao buscar produtos: ${error.message}
+                    </div>
+                `;
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+        
+        function renderProducts(products) {
+            const container = document.getElementById('products');
+            
+            if (products.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 40px;">Nenhum produto encontrado.</p>';
+                return;
+            }
+            
+            container.innerHTML = products.map(product => `
+                <div class="product-card">
+                    ${product.images && product.images.length > 0 
+                        ? `<img src="${product.images[0].url}" alt="${product.name}">`
+                        : '<img src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23eee\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\'%3ESem imagem%3C/text%3E%3C/svg%3E">'
+                    }
+                    <h3>${product.name}</h3>
+                    ${product.price ? `<div class="price">R$ ${parseFloat(product.price).toFixed(2)}</div>` : ''}
+                    ${product.brand ? `<div class="brand">Marca: ${product.brand}</div>` : ''}
+                    ${product.images ? `<div class="brand">${product.images.length} imagem(ns)</div>` : ''}
+                </div>
+            `).join('');
+        }
+        
+        // Permitir buscar com Enter
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchProducts();
+            }
+        });
+        
+        // Buscar produtos iniciais
+        document.getElementById('searchInput').value = 'iphone';
+        searchProducts();
+    </script>
+</body>
+</html>

@@ -4,6 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { AppModule } from './app.module';
+import compression = require('compression');
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -11,6 +12,12 @@ async function bootstrap() {
     bodyParser: true,
     rawBody: true,
   });
+
+  // ⚡ COMPRESSÃO GZIP/DEFLATE - Reduz tamanho da resposta em até 90%
+  app.use(compression({
+    threshold: 1024, // Comprimir apenas respostas maiores que 1KB
+    level: 6, // Nível de compressão (0-9, 6 é bom equilíbrio)
+  }));
 
   // Aumentar limite de payload para 100MB
   app.use(require('express').json({ limit: '100mb' }));
