@@ -1,5 +1,5 @@
 
-import { Controller, Get, UseGuards, Logger } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards, Logger } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiSecurity } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { ApiKeyGuard } from '../common/guards/api-key.guard';
@@ -22,5 +22,14 @@ export class AdminController {
   getStats() {
     this.logger.log('GET /api/admin/stats');
     return this.adminService.getStats();
+  }
+
+  @Post('fix-product-names')
+  @ApiOperation({ summary: 'Fix product names (remove descriptions from names)' })
+  @ApiResponse({ status: 200, description: 'Product names fixed successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  fixProductNames() {
+    this.logger.log('POST /api/admin/fix-product-names');
+    return this.adminService.fixProductNames();
   }
 }

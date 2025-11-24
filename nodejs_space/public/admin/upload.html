@@ -255,60 +255,37 @@
         function parseProductData(folderName, descricao, info) {
             const lines = descricao.split('\n').map(l => l.trim()).filter(l => l);
             
+            // ⚡ NOVO: Nome sempre é o nome da pasta (sem modificações)
             let name = folderName;
             let description = '';
             let price = null;
 
+            // Processar descrição (todo o conteúdo do arquivo descricao.txt)
             if (lines.length > 0) {
-                const firstLine = lines[0];
+                // Verificar se a última linha contém um preço
+                const lastLine = lines[lines.length - 1];
+                const priceMatch = lastLine.match(/(?:Pre[çc]o:|R\$)?\s*([\d.,]+)/i);
                 
-                // Se a primeira linha é muito longa (>100 caracteres), é provavelmente a descrição completa
-                // Vamos extrair um nome curto e usar o resto como descrição
-                if (firstLine.length > 100) {
-                    // Pegar as primeiras palavras até 80 caracteres como nome
-                    const words = firstLine.split(' ');
-                    let shortName = '';
-                    for (const word of words) {
-                        if ((shortName + ' ' + word).length > 80) break;
-                        shortName += (shortName ? ' ' : '') + word;
-                    }
-                    name = shortName || firstLine.substring(0, 80);
-                    description = firstLine; // A descrição é a linha completa
+                if (priceMatch) {
+                    const priceStr = priceMatch[1].replace(/\./g, '').replace(',', '.');
+                    const parsedPrice = parseFloat(priceStr);
                     
-                    // Processar linhas restantes
-                    if (lines.length > 1) {
-                        const lastLine = lines[lines.length - 1];
-                        const priceMatch = lastLine.match(/R?\$?\s*([\d.,]+)/);
-                        
-                        if (priceMatch) {
-                            const priceStr = priceMatch[1].replace(/\./g, '').replace(',', '.');
-                            price = parseFloat(priceStr);
-                            if (lines.length > 2) {
-                                description += '\n' + lines.slice(1, -1).join('\n');
-                            }
-                        } else {
-                            description += '\n' + lines.slice(1).join('\n');
-                        }
+                    // Só aceitar como preço se for um valor razoável (maior que 1)
+                    if (parsedPrice > 1) {
+                        price = parsedPrice;
+                        // Descrição é tudo menos a última linha (que tem o preço)
+                        description = lines.slice(0, -1).join('\n').trim();
+                    } else {
+                        // Não é um preço válido, usar tudo como descrição
+                        description = lines.join('\n').trim();
                     }
                 } else {
-                    // Lógica original para linhas curtas
-                    name = firstLine;
-                    
-                    if (lines.length > 1) {
-                        const lastLine = lines[lines.length - 1];
-                        const priceMatch = lastLine.match(/R?\$?\s*([\d.,]+)/);
-                        
-                        if (priceMatch) {
-                            const priceStr = priceMatch[1].replace(/\./g, '').replace(',', '.');
-                            price = parseFloat(priceStr);
-                            description = lines.slice(1, -1).join('\n');
-                        } else {
-                            description = lines.slice(1).join('\n');
-                        }
-                    }
+                    // Sem preço, toda a descrição
+                    description = lines.join('\n').trim();
                 }
             }
 
+            // Adicionar info.txt se houver
             if (info) {
                 description += (description ? '\n\n' : '') + info;
             }

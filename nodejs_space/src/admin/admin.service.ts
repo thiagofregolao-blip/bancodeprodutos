@@ -51,4 +51,95 @@ export class AdminService {
       recentProducts,
     };
   }
+
+  async fixProductNames() {
+    this.logger.log('🔧 Fixing product names...');
+
+    try {
+      // Buscar todos os produtos
+      const products = await this.prisma.product.findMany({
+        select: {
+          id: true,
+          name: true,
+          description: true,
+        },
+      });
+
+      this.logger.log(`📊 Total products: ${products.length}`);
+
+      let updatedCount = 0;
+      const updates = [];
+
+      for (const product of products) {
+        // Verificar se o nome parece ser uma frase/descrição
+        const nameNeedsFixing =
+          product.name.length > 80 ||
+          product.name.includes(', ') ||
+          product.name.match(/\.\s/) ||
+          product.name.toLowerCase().startsWith('o ') ||
+          product.name.toLowerCase().includes(' é a ') ||
+          product.name.toLowerCase().includes(' é o ');
+
+        if (nameNeedsFixing && product.description) {
+          // Tentar extrair um nome curto da descrição
+          const descLines = product.description.split('\n');
+
+          // Procurar por um título curto nas primeiras linhas
+          let newName = null;
+
+          for (const line of descLines.slice(0, 3)) {
+            const cleanLine = line.trim();
+            // Se encontrar uma linha que parece um título de produto
+            if (cleanLine.length > 10 && cleanLine.length <= 100) {
+              // Verificar se tem padrão de nome de produto (letras maiúsculas, números, etc)
+              if (cleanLine.match(/[A-Z0-9]/)) {
+                newName = cleanLine;
+                break;
+              }
+            }
+          }
+
+          // Se não encontrou, pegar as primeiras palavras do nome atual até 80 chars
+          if (!newName) {
+            const words = product.name.split(' ');
+            let shortName = '';
+            for (const word of words) {
+              if ((shortName + ' ' + word).length > 80) break;
+              shortName += (shortName ? ' ' : '') + word;
+            }
+            newName = shortName || product.name.substring(0, 80);
+          }
+
+          // Atualizar o produto
+          await this.prisma.product.update({
+            where: { id: product.id },
+            data: { name: newName },
+          });
+
+          updates.push({
+            id: product.id,
+            oldName: product.name.substring(0, 80),
+            newName: newName,
+          });
+
+          updatedCount++;
+        }
+      }
+
+      this.logger.log(
+        `✨ Fix completed! Updated ${updatedCount} of ${products.length} products`,
+      );
+
+      return {
+        success: true,
+        message: 'Product names fixed successfully',
+        totalProducts: products.length,
+        updatedCount: updatedCount,
+        updates: updates.slice(0, 10), // Retornar apenas os primeiros 10 exemplos
+      };
+    } catch (error) {
+      this.logger.error(`❌ Error fixing product names: ${error.message}`);
+      throw error;
+    }
+  }
 }
