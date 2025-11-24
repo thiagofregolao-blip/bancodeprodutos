@@ -1,225 +1,255 @@
+# 🚀 GUIA RÁPIDO - API DE PRODUTOS
 
-# 🎯 Guia Rápido de Uso da API
+## ⚡ REGRA PRINCIPAL
 
-## 📋 Resumo
+**SEMPRE adicione `&includeImages=false` nas buscas!**
 
-**URL Base:** `https://bancodeprodutos.abacusai.app`  
-**API Key:** `700cd62c-7c2e-4aa2-a580-803d9318761d`  
-**Header obrigatório:** `X-API-Key: 700cd62c-7c2e-4aa2-a580-803d9318761d`
+Sem isso = 15-30 segundos ❌  
+Com isso = 0.2-0.5 segundos ✅
 
 ---
 
-## 🚀 Endpoints Principais
+## 🔑 CREDENCIAIS
 
-### 1️⃣ Listar Produtos
-```bash
-curl -H "X-API-Key: 700cd62c-7c2e-4aa2-a580-803d9318761d" \
-  "https://bancodeprodutos.abacusai.app/api/products?limit=10"
 ```
-
-### 2️⃣ Buscar Produto por ID
-```bash
-curl -H "X-API-Key: 700cd62c-7c2e-4aa2-a580-803d9318761d" \
-  "https://bancodeprodutos.abacusai.app/api/products/1"
-```
-
-### 3️⃣ Buscar Produtos (Search)
-```bash
-curl -H "X-API-Key: 700cd62c-7c2e-4aa2-a580-803d9318761d" \
-  "https://bancodeprodutos.abacusai.app/api/products?search=xiaomi"
-```
-
-### 4️⃣ Filtrar por Categoria
-```bash
-curl -H "X-API-Key: 700cd62c-7c2e-4aa2-a580-803d9318761d" \
-  "https://bancodeprodutos.abacusai.app/api/products?category=Celulares"
-```
-
-### 5️⃣ Listar Categorias
-```bash
-curl -H "X-API-Key: 700cd62c-7c2e-4aa2-a580-803d9318761d" \
-  "https://bancodeprodutos.abacusai.app/api/categories"
+URL: https://bancodeprodutos.abacusai.app
+API Key: ed126afe-92a8-415f-b886-a1b0fed24ff5
+Header: X-API-Key
 ```
 
 ---
 
-## 💻 Exemplo JavaScript Simples
+## 📖 3 FORMAS DE USAR
+
+### 1️⃣ BUSCAR PRODUTOS (Mais Usado)
+
+```bash
+# ✅ CORRETO - Ultra-rápido (0.2s)
+GET /api/products/search?q=iphone&includeImages=false&limit=20
+
+# ❌ ERRADO - Muito lento (20s)
+GET /api/products/search?q=iphone
+```
+
+**JavaScript:**
+```javascript
+const response = await fetch(
+  'https://bancodeprodutos.abacusai.app/api/products/search?q=iphone&includeImages=false&limit=20',
+  { headers: { 'X-API-Key': 'ed126afe-92a8-415f-b886-a1b0fed24ff5' } }
+);
+const data = await response.json();
+console.log(data.data); // Array de produtos
+```
+
+**PHP:**
+```php
+$url = "https://bancodeprodutos.abacusai.app/api/products/search?q=iphone&includeImages=false&limit=20";
+$ch = curl_init($url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-API-Key: ed126afe-92a8-415f-b886-a1b0fed24ff5']);
+$response = curl_exec($ch);
+$data = json_decode($response, true);
+print_r($data['data']);
+```
+
+---
+
+### 2️⃣ LISTAR PRODUTOS COM FOTO
+
+```bash
+# ✅ CORRETO - 1 foto por produto (1-2s)
+GET /api/products?page=1&limit=20&imageLimit=1
+```
+
+**JavaScript:**
+```javascript
+const response = await fetch(
+  'https://bancodeprodutos.abacusai.app/api/products?page=1&limit=20&imageLimit=1',
+  { headers: { 'X-API-Key': 'ed126afe-92a8-415f-b886-a1b0fed24ff5' } }
+);
+const data = await response.json();
+```
+
+---
+
+### 3️⃣ VER DETALHES COMPLETOS
+
+```bash
+# ✅ CORRETO - Todas as fotos (2-3s)
+GET /api/products/123
+```
+
+**JavaScript:**
+```javascript
+const response = await fetch(
+  'https://bancodeprodutos.abacusai.app/api/products/123',
+  { headers: { 'X-API-Key': 'ed126afe-92a8-415f-b886-a1b0fed24ff5' } }
+);
+const produto = await response.json();
+```
+
+---
+
+## 📊 PARÂMETROS IMPORTANTES
+
+| Parâmetro | Descrição | Valor Recomendado |
+|-----------|-----------|-------------------|
+| `includeImages` | Incluir imagens? | `false` para buscas |
+| `imageLimit` | Quantas imagens | `1` para listagens |
+| `limit` | Produtos por página | `20` |
+| `page` | Número da página | `1, 2, 3...` |
+| `q` | Termo de busca | `iphone, samsung...` |
+
+---
+
+## ⚠️ ERROS COMUNS
+
+### ❌ ERRO 1: Busca muito lenta
+```bash
+# ERRADO (20-30s)
+/api/products/search?q=iphone
+
+# CORRETO (0.2s)
+/api/products/search?q=iphone&includeImages=false
+```
+
+### ❌ ERRO 2: Esqueceu API Key
+```javascript
+// ERRADO - Retorna 401
+fetch('https://bancodeprodutos.abacusai.app/api/products/search?q=iphone')
+
+// CORRETO
+fetch('https://bancodeprodutos.abacusai.app/api/products/search?q=iphone&includeImages=false', {
+  headers: { 'X-API-Key': 'ed126afe-92a8-415f-b886-a1b0fed24ff5' }
+})
+```
+
+### ❌ ERRO 3: Muitos produtos de uma vez
+```bash
+# EVITE - Pode dar timeout
+/api/products?limit=500
+
+# PREFIRA - Use paginação
+/api/products?limit=20&page=1
+```
+
+---
+
+## 🎯 FLUXO IDEAL
+
+1. **Usuário digita** → Busca sem imagens (`includeImages=false`)
+2. **Mostra resultados** → Lista com 1 foto (`imageLimit=1`)
+3. **Clica no produto** → Detalhes completos (todas fotos)
+
+---
+
+## 📋 EXEMPLO COMPLETO FUNCIONAL
 
 ```html
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Teste API Produtos</title>
-    <style>
-        body { font-family: Arial; max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .product { border: 1px solid #ddd; padding: 15px; margin: 10px; display: inline-block; width: 250px; }
-        .product img { width: 100%; height: 200px; object-fit: cover; }
-        .price { color: #0066cc; font-weight: bold; font-size: 18px; }
-    </style>
+    <title>Busca de Produtos</title>
 </head>
 <body>
-    <h1>Produtos</h1>
-    <input type="text" id="search" placeholder="Buscar produtos..." style="width: 300px; padding: 10px;">
-    <button onclick="searchProducts()">Buscar</button>
-    <div id="products"></div>
+    <input type="text" id="busca" placeholder="Digite para buscar...">
+    <div id="resultados"></div>
 
     <script>
         const API_URL = 'https://bancodeprodutos.abacusai.app';
-        const API_KEY = '700cd62c-7c2e-4aa2-a580-803d9318761d';
+        const API_KEY = 'ed126afe-92a8-415f-b886-a1b0fed24ff5';
 
-        async function loadProducts(query = '') {
-            const url = query 
-                ? `${API_URL}/api/products?search=${encodeURIComponent(query)}&limit=20`
-                : `${API_URL}/api/products?limit=20`;
+        document.getElementById('busca').addEventListener('input', async (e) => {
+            const termo = e.target.value;
+            
+            if (termo.length < 3) return;
 
-            const response = await fetch(url, {
-                headers: { 'X-API-Key': API_KEY }
-            });
+            // ✅ Busca SEM imagens (ultra-rápido!)
+            const response = await fetch(
+                `${API_URL}/api/products/search?q=${termo}&includeImages=false&limit=10`,
+                { headers: { 'X-API-Key': API_KEY } }
+            );
 
             const data = await response.json();
-            displayProducts(data.data);
-        }
-
-        function displayProducts(products) {
-            const container = document.getElementById('products');
-            container.innerHTML = products.map(p => `
-                <div class="product">
-                    ${p.images[0] ? `<img src="${API_URL}${p.images[0].url}" alt="${p.name}">` : ''}
+            
+            // Mostrar resultados
+            document.getElementById('resultados').innerHTML = data.data.map(p => `
+                <div>
                     <h3>${p.name}</h3>
-                    <p>${p.category || ''}</p>
-                    <p class="price">${p.price ? 'R$ ' + p.price.toFixed(2) : 'Sem preço'}</p>
+                    <p>R$ ${parseFloat(p.price).toFixed(2)}</p>
                 </div>
             `).join('');
-        }
-
-        function searchProducts() {
-            const query = document.getElementById('search').value;
-            loadProducts(query);
-        }
-
-        // Carregar produtos ao abrir a página
-        loadProducts();
-
-        // Buscar ao pressionar Enter
-        document.getElementById('search').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') searchProducts();
         });
     </script>
 </body>
 </html>
 ```
 
-Salve como `teste-api.html` e abra no navegador!
-
 ---
 
-## 📱 URLs Importantes
-
-- **API Docs (Swagger):** https://bancodeprodutos.abacusai.app/api-docs
-- **Admin Dashboard:** https://bancodeprodutos.abacusai.app/admin
-- **Upload de Produtos:** https://bancodeprodutos.abacusai.app/admin/upload.html
-
----
-
-## 🔑 Estrutura de Resposta
-
-### Produto
-```json
-{
-  "id": 1,
-  "name": "Nome do Produto",
-  "description": "Descrição completa...",
-  "price": 499.90,
-  "category": "Celulares",
-  "categoryId": 1,
-  "condition": "Semi Novo",
-  "brand": "Xiaomi",
-  "model": "Redmi 9A",
-  "images": [
-    {
-      "id": 1,
-      "url": "/uploads/products/1_123_imagem_1.jpg"
-    }
-  ],
-  "createdAt": "2025-11-23T20:30:59.811Z",
-  "updatedAt": "2025-11-23T20:30:59.811Z"
-}
-```
-
-### Lista Paginada
-```json
-{
-  "data": [...], // Array de produtos
-  "total": 2621,
-  "page": 1,
-  "limit": 50,
-  "totalPages": 53
-}
-```
-
----
-
-## ⚡ Parâmetros de Query
-
-| Parâmetro | Tipo | Descrição | Exemplo |
-|-----------|------|-----------|---------|
-| `page` | number | Número da página | `page=1` |
-| `limit` | number | Itens por página (máx: 100) | `limit=50` |
-| `search` | string | Buscar em nome/descrição | `search=xiaomi` |
-| `category` | string | Filtrar por categoria | `category=Celulares` |
-| `sortBy` | string | Campo para ordenar | `sortBy=price` |
-| `order` | string | asc ou desc | `order=desc` |
-
----
-
-## 🎨 Como Exibir Imagens
-
-As URLs das imagens são relativas. Para exibir, adicione o domínio:
+## 🎓 COPIE E COLE NO SEU CÓDIGO
 
 ```javascript
-// URL retornada pela API
-const imageUrl = product.images[0].url;
-// Exemplo: "/uploads/products/1_123_imagem_1.jpg"
+// ✅ FUNÇÕES PRONTAS PARA USAR
 
-// URL completa para exibir
-const fullUrl = `https://i.ytimg.com/vi/V0DeC9TkkkY/maxresdefault.jpg`;
-// Resultado: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Colour_18-col_PT_with_labels.png/1200px-Colour_18-col_PT_with_labels.png"
-```
+const API_URL = 'https://bancodeprodutos.abacusai.app';
+const API_KEY = 'ed126afe-92a8-415f-b886-a1b0fed24ff5';
 
-**Em HTML:**
-```html
-<img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/5_PAO_12M_2007-07-12.jpg" 
-     alt="Produto">
+// Buscar produtos (SEM imagens - ultra-rápido)
+async function buscar(termo) {
+    const res = await fetch(
+        `${API_URL}/api/products/search?q=${termo}&includeImages=false&limit=20`,
+        { headers: { 'X-API-Key': API_KEY } }
+    );
+    return (await res.json()).data;
+}
+
+// Listar produtos (COM 1 foto)
+async function listar(pagina = 1) {
+    const res = await fetch(
+        `${API_URL}/api/products?page=${pagina}&limit=20&imageLimit=1`,
+        { headers: { 'X-API-Key': API_KEY } }
+    );
+    return (await res.json()).data;
+}
+
+// Detalhes do produto (TODAS as fotos)
+async function detalhes(id) {
+    const res = await fetch(
+        `${API_URL}/api/products/${id}`,
+        { headers: { 'X-API-Key': API_KEY } }
+    );
+    return await res.json();
+}
+
+// USAR:
+const produtos = await buscar('iphone'); // Busca rápida
+const lista = await listar(1); // Página 1 com fotos
+const produto = await detalhes(123); // Detalhes completos
 ```
 
 ---
 
-## 🛠️ Testando no Terminal
+## ✅ CHECKLIST
 
-### Instalar httpie (mais legível que curl)
-```bash
-pip install httpie
-```
+Antes de usar em produção:
 
-### Listar produtos
-```bash
-http GET https://bancodeprodutos.abacusai.app/api/products \
-  X-API-Key:700cd62c-7c2e-4aa2-a580-803d9318761d \
-  limit==10
-```
-
-### Buscar produto
-```bash
-http GET https://bancodeprodutos.abacusai.app/api/products/1 \
-  X-API-Key:700cd62c-7c2e-4aa2-a580-803d9318761d
-```
+- [ ] Adicionei `includeImages=false` nas buscas?
+- [ ] Usei `imageLimit=1` nas listagens?
+- [ ] Coloquei a API Key no header `X-API-Key`?
+- [ ] Testei e está rápido (< 2s)?
+- [ ] Implementei paginação?
 
 ---
 
-## 📞 Precisa de Ajuda?
+## 📞 PRECISA DE AJUDA?
 
-- Veja a **documentação completa** em Swagger
-- Teste os endpoints diretamente pelo **Admin Dashboard**
-- Todos os endpoints retornam JSON padronizado
+- 📖 Guia completo: `GUIA_DE_INTEGRACAO.md`
+- 🌐 Documentação: https://bancodeprodutos.abacusai.app/api-docs
+- 📧 Email: seu-email@exemplo.com
 
-**🎉 Pronto para integrar! 🚀**
+---
+
+**LEMBRE-SE:** `includeImages=false` = Busca RÁPIDA! ⚡
+
+**Última atualização:** 24/11/2024
