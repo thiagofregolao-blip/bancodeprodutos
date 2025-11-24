@@ -236,32 +236,47 @@
         }
         
         async function clearDatabase() {
-            const clearProducts = !document.getElementById('clearProducts').checked;
-            const clearCategories = !document.getElementById('clearCategories').checked;
+            const deleteProducts = document.getElementById('clearProducts').checked;
+            const deleteCategories = document.getElementById('clearCategories').checked;
             
-            if (clearProducts && clearCategories) {
-                alert('Selecione pelo menos uma opção para limpar!');
+            if (!deleteProducts && !deleteCategories) {
+                alert('❌ Selecione pelo menos uma opção para limpar!');
+                return;
+            }
+            
+            // Confirmação extra
+            const confirmMsg = `Você está prestes a deletar:\n${deleteProducts ? '✓ TODOS os produtos\n' : ''}${deleteCategories ? '✓ TODAS as categorias\n' : ''}\nEsta ação NÃO pode ser desfeita!\n\nDeseja continuar?`;
+            
+            if (!confirm(confirmMsg)) {
                 return;
             }
             
             try {
-                const response = await fetch('/api/seed', {
+                const response = await fetch('/api/admin/clear-database', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-API-Key': API_KEY
                     },
                     body: JSON.stringify({
-                        apiKeys: true,
-                        categories: clearCategories,
-                        products: clearProducts
+                        products: deleteProducts,
+                        categories: deleteCategories
                     })
                 });
                 
                 const result = await response.json();
                 
                 if (result.success) {
-                    alert('✅ Banco de dados limpo com sucesso!\n\nNOVAS API KEYS:\nAdmin: ' + result.adminApiKey + '\nRead-Only: ' + result.readOnlyApiKey + '\n\nIMPORTANTE: Faça o DEPLOY para aplicar as novas chaves!');
+                    const deletedInfo = `
+✅ Banco de dados limpo com sucesso!
+
+📊 DELETADO:
+• Produtos: ${result.deleted.products}
+• Imagens: ${result.deleted.images}
+• Categorias: ${result.deleted.categories}
+                    `.trim();
+                    
+                    alert(deletedInfo);
                     hideClearModal();
                     loadDashboard();
                 } else {

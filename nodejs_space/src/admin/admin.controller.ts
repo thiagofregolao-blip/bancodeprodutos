@@ -1,5 +1,5 @@
 
-import { Controller, Get, Post, UseGuards, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Logger } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiSecurity } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { ApiKeyGuard } from '../common/guards/api-key.guard';
@@ -31,5 +31,14 @@ export class AdminController {
   fixProductNames() {
     this.logger.log('POST /api/admin/fix-product-names');
     return this.adminService.fixProductNames();
+  }
+
+  @Post('clear-database')
+  @ApiOperation({ summary: 'Clear database - delete products and/or categories' })
+  @ApiResponse({ status: 200, description: 'Database cleared successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async clearDatabase(@Body() body: { products?: boolean; categories?: boolean }) {
+    this.logger.log('POST /api/admin/clear-database', body);
+    return this.adminService.clearDatabase(body.products, body.categories);
   }
 }

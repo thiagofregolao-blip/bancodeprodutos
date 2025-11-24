@@ -142,4 +142,48 @@ export class AdminService {
       throw error;
     }
   }
+
+  async clearDatabase(deleteProducts = true, deleteCategories = false) {
+    this.logger.log(`🗑️  Clearing database - Products: ${deleteProducts}, Categories: ${deleteCategories}`);
+
+    try {
+      let deletedProducts = 0;
+      let deletedImages = 0;
+      let deletedCategories = 0;
+
+      if (deleteProducts) {
+        // Deletar TODOS de uma vez usando SQL direto para performance
+        this.logger.log('🗑️  Deleting all images...');
+        
+        // Usar executeRaw para deletar tudo rapidamente
+        deletedImages = await this.prisma.$executeRaw`DELETE FROM "Image"`;
+        this.logger.log(`✅ Deleted ${deletedImages} images`);
+
+        this.logger.log('🗑️  Deleting all products...');
+        deletedProducts = await this.prisma.$executeRaw`DELETE FROM "Product"`;
+        this.logger.log(`✅ Deleted ${deletedProducts} products`);
+      }
+
+      if (deleteCategories) {
+        const categoriesResult = await this.prisma.category.deleteMany();
+        deletedCategories = categoriesResult.count;
+        this.logger.log(`🗑️  Deleted ${deletedCategories} categories`);
+      }
+
+      this.logger.log('✅ Database cleared successfully');
+
+      return {
+        success: true,
+        message: 'Database cleared successfully',
+        deleted: {
+          products: deletedProducts,
+          images: deletedImages,
+          categories: deletedCategories,
+        },
+      };
+    } catch (error) {
+      this.logger.error(`❌ Error clearing database: ${error.message}`);
+      throw error;
+    }
+  }
 }

@@ -1,0 +1,39 @@
+===========================================
+✅ BOTÃO "LIMPAR BANCO" - FUNCIONANDO!
+===========================================
+
+O QUE FOI CORRIGIDO:
+--------------------
+❌ ANTES: Usava endpoint errado que recriava dados
+✅ AGORA: Endpoint específico que SÓ DELETA
+
+❌ ANTES: Dava timeout com muitas imagens
+✅ AGORA: Usa SQL direto - super rápido
+
+❌ ANTES: Lógica invertida nos checkboxes
+✅ AGORA: Checkboxes funcionam corretamente
+
+COMO USAR:
+----------
+1. Faça o DEPLOY
+2. Acesse: https://bancodeprodutos.abacusai.app/admin/
+3. Clique no botão vermelho "LIMPAR BANCO"
+4. Marque o que quer deletar:
+   ✓ Produtos (já vem marcado)
+   □ Categorias (marque se quiser)
+5. Clique "Confirmar Limpeza"
+6. Confirme no segundo alerta
+7. PRONTO! Vai mostrar quantos foram deletados
+
+IMPORTANTE:
+-----------
+• NÃO gera novas API keys (mantém as atuais)
+• Funciona instantaneamente (usa SQL direto)
+• Pode escolher deletar só produtos OU produtos + categorias
+• Mostra confirmação antes de executar
+
+API KEY ATUAL (NÃO MUDA):
+--------------------------
+ed126afe-92a8-415f-b886-a1b0fed24ff5
+
+===========================================
