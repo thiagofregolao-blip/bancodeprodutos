@@ -32,9 +32,48 @@
                 <h2 class="text-3xl font-bold text-gray-900">Dashboard</h2>
                 <p class="text-gray-600 mt-1">Visão geral do seu banco de produtos</p>
             </div>
-            <a href="upload.html" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition">
-                <i class="fas fa-upload mr-2"></i>Fazer Upload de ZIP
-            </a>
+            <div class="flex gap-3">
+                <button onclick="showClearModal()" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+                    <i class="fas fa-trash mr-2"></i>Limpar Banco
+                </button>
+                <a href="upload.html" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+                    <i class="fas fa-upload mr-2"></i>Fazer Upload de ZIP
+                </a>
+            </div>
+        </div>
+        
+        <!-- Modal Limpar Banco -->
+        <div id="clearModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">⚠️ Limpar Banco de Dados</h3>
+                <p class="text-gray-600 mb-6">Escolha o que deseja limpar:</p>
+                
+                <div class="space-y-3 mb-6">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="clearProducts" checked class="mr-2">
+                        <span class="font-medium">Deletar TODOS os produtos</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="clearCategories" class="mr-2">
+                        <span class="font-medium">Deletar TODAS as categorias</span>
+                    </label>
+                </div>
+                
+                <div class="bg-yellow-50 border border-yellow-200 rounded p-3 mb-6">
+                    <p class="text-sm text-yellow-800">
+                        <strong>⚠️ ATENÇÃO:</strong> Esta ação não pode ser desfeita!
+                    </p>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button onclick="clearDatabase()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+                        Confirmar Limpeza
+                    </button>
+                    <button onclick="hideClearModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg transition">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Stats Cards -->
@@ -185,6 +224,53 @@
                 </a>
             `;
             }).join('');
+        }
+
+        // Funções do Modal
+        function showClearModal() {
+            document.getElementById('clearModal').classList.remove('hidden');
+        }
+        
+        function hideClearModal() {
+            document.getElementById('clearModal').classList.add('hidden');
+        }
+        
+        async function clearDatabase() {
+            const clearProducts = !document.getElementById('clearProducts').checked;
+            const clearCategories = !document.getElementById('clearCategories').checked;
+            
+            if (clearProducts && clearCategories) {
+                alert('Selecione pelo menos uma opção para limpar!');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/seed', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': API_KEY
+                    },
+                    body: JSON.stringify({
+                        apiKeys: true,
+                        categories: clearCategories,
+                        products: clearProducts
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('✅ Banco de dados limpo com sucesso!\n\nNOVAS API KEYS:\nAdmin: ' + result.adminApiKey + '\nRead-Only: ' + result.readOnlyApiKey + '\n\nIMPORTANTE: Faça o DEPLOY para aplicar as novas chaves!');
+                    hideClearModal();
+                    loadDashboard();
+                } else {
+                    alert('❌ Erro ao limpar banco: ' + (result.message || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                alert('❌ Erro ao limpar banco: ' + error.message);
+                console.error('Erro:', error);
+            }
         }
 
         // Carregar dashboard ao carregar a página
