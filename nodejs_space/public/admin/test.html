@@ -1,15 +1,16 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-    <title>Teste API</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API</title>
 </head>
 <body>
-    <h1>Teste de Conexão com API</h1>
+    <h1>Test API</h1>
     <div id="result"></div>
-    
     <script>
-        const API_KEY = '49e516cb-aeb1-44aa-9d76-f9341db7973a';
-        
+        const API_KEY = '0c898d16-b16c-4387-a748-4998d9d38e53';
         fetch('/api/admin/stats', {
             headers: {
                 'X-API-Key': API_KEY
@@ -20,7 +21,7 @@
             document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
         })
         .catch(error => {
-            document.getElementById('result').innerHTML = '<p style="color:red;">Erro: ' + error.message + '</p>';
+            document.getElementById('result').innerHTML = '<pre style="color: red;">Error: ' + error + '</pre>';
         });
     </script>
 </body>

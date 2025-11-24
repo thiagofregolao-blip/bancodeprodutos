@@ -1,0 +1,62 @@
+
+===========================================
+🔑 NOVAS API KEYS - BANCO LIMPO
+===========================================
+
+✅ BANCO DE DADOS FOI COMPLETAMENTE LIMPO!
+Todos os 10.889 produtos antigos foram deletados.
+
+-------------------------------------------
+📌 API KEYS ATUALIZADAS
+-------------------------------------------
+
+🔐 ADMIN KEY (Acesso total - criar/editar/deletar):
+0c898d16-b16c-4387-a748-4998d9d38e53
+
+👁️ READ-ONLY KEY (Apenas leitura - consultar produtos):
+374d7299-4954-425d-9dc7-d14090c3d504
+
+-------------------------------------------
+✅ ARQUIVOS HTML ATUALIZADOS
+-------------------------------------------
+
+Os seguintes arquivos foram atualizados automaticamente:
+✓ /public/admin/index.html
+✓ /public/admin/test.html
+✓ /public/admin/upload.html
+✓ /public/admin/products.html
+✓ /public/admin/categories.html
+✓ /public/admin/product-detail.html
+
+-------------------------------------------
+📤 PRÓXIMOS PASSOS
+-------------------------------------------
+
+1. 🚀 FAÇA O DEPLOY clicando no botão "DEPLOY" no topo
+
+2. 📤 Depois do deploy, acesse:
+   https://bancodeprodutos.abacusai.app/admin/upload.html
+
+3. 📦 Faça o upload do seu arquivo ZIP com os produtos
+
+4. ✅ AGORA VAI FUNCIONAR PERFEITAMENTE:
+   • Nome = Nome da pasta
+   • Descrição = Arquivo completo descricao.txt
+   • Imagens = Base64 inline (funcionam em produção)
+   • Preços = Corretos
+
+-------------------------------------------
+🎯 DASHBOARD APÓS O UPLOAD
+-------------------------------------------
+
+Dashboard vai mostrar ZERO produtos até você fazer o upload!
+- Total de Produtos: 0
+- Categorias: (as que já existem)
+- Total de Imagens: 0
+- Produtos Recentes: (vazio)
+
+Isso é NORMAL e CORRETO! ✅
+
+===========================================
+Data da limpeza: 2024-11-24
+===========================================
