@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class SeedService {
   private readonly logger = new Logger(SeedService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async seed() {
     try {
@@ -61,7 +61,7 @@ export class SeedService {
 
       // Check if sample product already exists
       const existingProducts = await this.prisma.product.count();
-      
+
       if (existingProducts === 0) {
         // Create sample product
         const imacCategory = await this.prisma.category.findUnique({

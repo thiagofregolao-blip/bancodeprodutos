@@ -25,7 +25,7 @@ export class ProductsService {
     try {
       this.logger.log(`📥 saveBase64Image chamado - produto: ${productId}, arquivo: ${filename}`);
       this.logger.log(`📊 Base64 recebido - tamanho: ${base64Data.length} chars`);
-      
+
       // Extrair o base64 puro (aceita image/* ou application/octet-stream)
       const matches = base64Data.match(/^data:(?:image\/(\w+)|application\/octet-stream);base64,(.+)$/);
       if (!matches) {
@@ -36,17 +36,17 @@ export class ProductsService {
       // Se veio como octet-stream, pega extensão do filename, senão do mime type
       const ext = matches[1] || filename.split('.').pop() || 'jpg';
       const data = matches[2];
-      
+
       // ⚡ NOVO: Salvar diretamente como base64 inline (não precisa de arquivo físico)
       // Isso garante que as imagens funcionem em produção sem precisar de storage externo
-      const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : 
-                       ext === 'png' ? 'image/png' : 
-                       ext === 'webp' ? 'image/webp' : 
-                       ext === 'gif' ? 'image/gif' : 'image/jpeg';
-      
+      const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' :
+        ext === 'png' ? 'image/png' :
+          ext === 'webp' ? 'image/webp' :
+            ext === 'gif' ? 'image/gif' : 'image/jpeg';
+
       const base64Url = `data:${mimeType};base64,${data}`;
       this.logger.log(`✅ Imagem salva como base64 inline - ${Math.round(data.length / 1024)}KB`);
-      
+
       return base64Url;
     } catch (error) {
       this.logger.error(`❌ Erro ao processar imagem: ${error.message}`);
@@ -92,15 +92,15 @@ export class ProductsService {
     if (images && images.length > 0) {
       this.logger.log(`📸 Processando ${images.length} imagens para produto ${product.id}`);
       const imageRecords = [];
-      
+
       for (let i = 0; i < images.length; i++) {
         const img = images[i];
         try {
           let imageUrl: string;
-          
+
           // Se a imagem tem 'data' (base64), salvar localmente
           if (img.data) {
-            this.logger.log(`💾 Salvando imagem ${i+1}/${images.length} (${img.filename || `image_${i}.${img.ext}`})`);
+            this.logger.log(`💾 Salvando imagem ${i + 1}/${images.length} (${img.filename || `image_${i}.${img.ext}`})`);
             imageUrl = await this.saveBase64Image(img.data, img.filename || `image_${i}.${img.ext}`, product.id);
             this.logger.log(`✅ Imagem salva: ${imageUrl}`);
           } else if (img.url) {
@@ -128,7 +128,7 @@ export class ProductsService {
       if (imageRecords.length > 0) {
         this.logger.log(`💿 Criando ${imageRecords.length} registros no banco...`);
         this.logger.log(`📋 Dados: ${JSON.stringify(imageRecords, null, 2)}`);
-        
+
         try {
           await this.prisma.image.createMany({
             data: imageRecords,
@@ -156,13 +156,13 @@ export class ProductsService {
   }
 
   async findAll(filterDto: FilterProductsDto) {
-    const { 
-      page = 1, 
-      limit = 10, 
-      category, 
-      brand, 
-      condition, 
-      minPrice, 
+    const {
+      page = 1,
+      limit = 10,
+      category,
+      brand,
+      condition,
+      minPrice,
       maxPrice,
       includeImages = true,
       imageLimit = 1
@@ -248,12 +248,12 @@ export class ProductsService {
   }
 
   async search(searchDto: SearchProductsDto) {
-    const { 
-      q, 
-      page = 1, 
-      limit = 10, 
-      category, 
-      brand, 
+    const {
+      q,
+      page = 1,
+      limit = 10,
+      category,
+      brand,
       condition,
       includeImages = true,
       imageLimit = 1
@@ -369,12 +369,12 @@ export class ProductsService {
     // Process images if provided
     if (images && images.length > 0) {
       const imageRecords = [];
-      
+
       for (let i = 0; i < images.length; i++) {
         const img = images[i];
         try {
           let imageUrl: string;
-          
+
           if (img.data) {
             imageUrl = await this.saveBase64Image(img.data, img.filename || `image_${i}.${img.ext}`, product.id);
           } else if (img.url) {
@@ -437,7 +437,7 @@ export class ProductsService {
       const productDto = products[i];
       try {
         this.logger.log(`Creating product ${i + 1}/${products.length}: ${productDto.name}`);
-        
+
         // Validação básica
         if (!productDto.name || productDto.name.trim() === '') {
           throw new Error('Nome do produto não pode estar vazio');
