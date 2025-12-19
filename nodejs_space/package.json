@@ -6,6 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "prestart": "if [ ! -f dist/main.js ] && [ ! -f dist/main.cjs ] && [ ! -f dist/main.mjs ]; then npm run build; fi",
     "postinstall": "prisma generate",
     "build": "prisma generate && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
