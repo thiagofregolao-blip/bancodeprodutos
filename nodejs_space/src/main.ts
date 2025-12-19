@@ -148,11 +148,11 @@ async function bootstrap() {
     },
   });
 
-  const port = process.env.PORT || 3000;
+  const port = Number.parseInt(process.env.PORT ?? '3000', 10);
   await app.listen(port, '0.0.0.0');
 
-  logger.log(`🚀 Aplicação rodando em: http://0.0.0.0:${port}`);
-  logger.log(`📚 Documentação da API disponível em: /api-docs`);
+  logger.log(`🚀 Listening on 0.0.0.0:${port} (PORT env: ${process.env.PORT ?? '(unset)'})`);
+  logger.log(`📚 Swagger: /api-docs`);
   logger.log(`🔑 Não esqueça de inicializar o banco de dados chamando POST /api/seed`);
 }
 bootstrap();
