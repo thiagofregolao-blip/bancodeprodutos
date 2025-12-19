@@ -8,7 +8,7 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  @Redirect('/admin/upload-simple.html', 302)
+  @Redirect('/admin/index.html', 302)
   root() {
     return;
   }

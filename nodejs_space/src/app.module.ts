@@ -15,7 +15,9 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 @Module({
   imports: [
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', '..', 'public'),
+      // Em produção (Railway), o app roda a partir do diretório do projeto (/app),
+      // então `process.cwd()/public` existe, enquanto `__dirname` vira `dist/src`.
+      rootPath: join(process.cwd(), 'public'),
       serveRoot: '/',
     }),
     PrismaModule,

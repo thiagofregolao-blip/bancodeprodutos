@@ -3,6 +3,7 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { mkdirSync } from 'fs';
 import { AppModule } from './app.module';
 import compression = require('compression');
 
@@ -23,15 +24,13 @@ async function bootstrap() {
   app.use(require('express').json({ limit: '100mb' }));
   app.use(require('express').urlencoded({ limit: '100mb', extended: true }));
 
-  // Servir arquivos estáticos
-  app.useStaticAssets(join(__dirname, '..', 'public'), {
-    prefix: '/',
-  });
-  
-  // Servir imagens dos produtos
-  app.useStaticAssets(join(__dirname, '..', '..', 'uploads'), {
-    prefix: '/uploads',
-  });
+  // Static files (Railway roda em /app; `__dirname` vira dist/src e quebra paths relativos)
+  const publicDir = join(process.cwd(), 'public');
+  const uploadsDir = join(process.cwd(), 'uploads');
+  mkdirSync(uploadsDir, { recursive: true });
+
+  app.useStaticAssets(publicDir, { prefix: '/' });
+  app.useStaticAssets(uploadsDir, { prefix: '/uploads' });
 
   // Enable CORS
   app.enableCors({
@@ -150,10 +149,10 @@ async function bootstrap() {
   });
 
   const port = process.env.PORT || 3000;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 
-  logger.log(`🚀 Aplicação rodando em: http://localhost:${port}`);
-  logger.log(`📚 Documentação da API disponível em: http://localhost:${port}/api-docs`);
+  logger.log(`🚀 Aplicação rodando em: http://0.0.0.0:${port}`);
+  logger.log(`📚 Documentação da API disponível em: /api-docs`);
   logger.log(`🔑 Não esqueça de inicializar o banco de dados chamando POST /api/seed`);
 }
 bootstrap();
