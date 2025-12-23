@@ -63,6 +63,7 @@ CREATE INDEX idx_products_condition ON products(condition);
 CREATE INDEX idx_images_product_id ON images(product_id);
 CREATE INDEX idx_api_keys_key ON api_keys(key);
 
--- Inserir API key padrão
-INSERT INTO api_keys (key, name, is_active, is_admin, created_at)
-VALUES ('dev-api-key-123', 'Default Development Key', true, true, CURRENT_TIMESTAMP);
+-- Inserir API keys usadas pelo frontend
+INSERT INTO api_keys (key, name, is_active, is_admin, created_at) VALUES
+('ed126afe-92a8-415f-b886-a1b0fed24ff5', 'Admin Panel Key', true, true, CURRENT_TIMESTAMP),
+('700cd62c-7c2e-4aa2-a580-803d9318761d', 'Public API Key', true, false, CURRENT_TIMESTAMP);
