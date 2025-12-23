@@ -5,8 +5,7 @@ nixPkgs = ["nodejs_22"]
 cmds = ["npm ci --include=dev"]
 
 [phases.build]
-cmds = ["npm run build", "npx prisma migrate deploy"]
+cmds = ["npm run build"]
 
 [start]
-cmd = "npm run start:prod"
-
+cmd = "npx prisma db execute --file prisma/init.sql && npm run start:prod"
