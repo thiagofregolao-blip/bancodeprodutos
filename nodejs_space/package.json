@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "prestart": "if [ ! -f dist/src/main.js ] && [ ! -f dist/src/main.cjs ] && [ ! -f dist/src/main.mjs ]; then npm run build; fi",
+    "prestart": "if [ -n \"$DATABASE_URL\" ]; then npx prisma db execute --file prisma/init.sql; fi; if [ ! -f dist/src/main.js ] && [ ! -f dist/src/main.cjs ] && [ ! -f dist/src/main.mjs ]; then npm run build; fi",
     "postinstall": "prisma generate",
     "build": "prisma generate && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
