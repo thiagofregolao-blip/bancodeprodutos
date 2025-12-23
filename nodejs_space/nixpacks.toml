@@ -8,4 +8,4 @@ cmds = ["npm ci --include=dev"]
 cmds = ["npm run build"]
 
 [start]
-cmd = "npx prisma db execute --file prisma/init.sql && npm run start:prod"
+cmd = "npx prisma db execute --file prisma/init.sql 2>/dev/null || true && npm run start:prod"

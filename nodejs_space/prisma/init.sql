@@ -1,8 +1,15 @@
--- Inicialização idempotente do banco de dados
--- Este script pode ser executado múltiplas vezes sem erro
+-- Inicialização do banco de dados
+-- IMPORTANTE: Este script RECRIA as tabelas se o schema estiver incorreto
+
+-- Dropar tabelas na ordem correta (por causa das foreign keys)
+DROP TABLE IF EXISTS images CASCADE;
+DROP TABLE IF EXISTS products CASCADE;
+DROP TABLE IF EXISTS categories CASCADE;
+DROP TABLE IF EXISTS api_keys CASCADE;
+DROP TABLE IF EXISTS _prisma_migrations CASCADE;
 
 -- Tabela de categorias
-CREATE TABLE IF NOT EXISTS categories (
+CREATE TABLE categories (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,
@@ -11,7 +18,7 @@ CREATE TABLE IF NOT EXISTS categories (
 );
 
 -- Tabela de produtos
-CREATE TABLE IF NOT EXISTS products (
+CREATE TABLE products (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,
@@ -26,7 +33,7 @@ CREATE TABLE IF NOT EXISTS products (
 );
 
 -- Tabela de imagens
-CREATE TABLE IF NOT EXISTS images (
+CREATE TABLE images (
     id TEXT PRIMARY KEY,
     url TEXT NOT NULL,
     "productId" TEXT NOT NULL,
@@ -36,7 +43,7 @@ CREATE TABLE IF NOT EXISTS images (
 );
 
 -- Tabela de API keys
-CREATE TABLE IF NOT EXISTS api_keys (
+CREATE TABLE api_keys (
     id TEXT PRIMARY KEY,
     key TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
@@ -46,14 +53,13 @@ CREATE TABLE IF NOT EXISTS api_keys (
 );
 
 -- Índices para busca
-CREATE INDEX IF NOT EXISTS idx_products_name ON products(name);
-CREATE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
-CREATE INDEX IF NOT EXISTS idx_products_barcode ON products(barcode);
-CREATE INDEX IF NOT EXISTS idx_products_category ON products("categoryId");
-CREATE INDEX IF NOT EXISTS idx_images_product ON images("productId");
-CREATE INDEX IF NOT EXISTS idx_api_keys_key ON api_keys(key);
+CREATE INDEX idx_products_name ON products(name);
+CREATE INDEX idx_products_sku ON products(sku);
+CREATE INDEX idx_products_barcode ON products(barcode);
+CREATE INDEX idx_products_category ON products("categoryId");
+CREATE INDEX idx_images_product ON images("productId");
+CREATE INDEX idx_api_keys_key ON api_keys(key);
 
--- Inserir API key padrão se não existir
+-- Inserir API key padrão
 INSERT INTO api_keys (id, key, name, "isActive", "createdAt", "updatedAt")
-SELECT 'default-api-key', 'dev-api-key-123', 'Default Development Key', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
-WHERE NOT EXISTS (SELECT 1 FROM api_keys WHERE key = 'dev-api-key-123');
+VALUES ('default-api-key', 'dev-api-key-123', 'Default Development Key', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
