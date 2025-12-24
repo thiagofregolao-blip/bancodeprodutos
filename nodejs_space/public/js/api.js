@@ -1,7 +1,7 @@
 
 // Configuração da API
 const API_BASE_URL = window.location.origin;
-const API_KEY = '700cd62c-7c2e-4aa2-a580-803d9318761d';
+const API_KEY = 'ed126afe-92a8-415f-b886-a1b0fed24ff5';
 
 // Função auxiliar para fazer requisições
 async function fetchAPI(endpoint, options = {}) {
