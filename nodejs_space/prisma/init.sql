@@ -1,14 +1,8 @@
--- Inicialização do banco de dados baseado no schema.prisma REAL
-
--- Dropar tabelas na ordem correta (por causa das foreign keys)
-DROP TABLE IF EXISTS images CASCADE;
-DROP TABLE IF EXISTS products CASCADE;
-DROP TABLE IF EXISTS categories CASCADE;
-DROP TABLE IF EXISTS api_keys CASCADE;
-DROP TABLE IF EXISTS _prisma_migrations CASCADE;
+-- Inicialização IDEMPOTENTE do banco de dados
+-- NÃO apaga dados existentes - apenas cria o que falta
 
 -- Tabela de categorias
-CREATE TABLE categories (
+CREATE TABLE IF NOT EXISTS categories (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
     slug TEXT NOT NULL UNIQUE,
@@ -16,7 +10,7 @@ CREATE TABLE categories (
 );
 
 -- Tabela de produtos
-CREATE TABLE products (
+CREATE TABLE IF NOT EXISTS products (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
@@ -35,7 +29,7 @@ CREATE TABLE products (
 );
 
 -- Tabela de imagens
-CREATE TABLE images (
+CREATE TABLE IF NOT EXISTS images (
     id SERIAL PRIMARY KEY,
     product_id INTEGER NOT NULL,
     url TEXT NOT NULL,
@@ -45,7 +39,7 @@ CREATE TABLE images (
 );
 
 -- Tabela de API keys
-CREATE TABLE api_keys (
+CREATE TABLE IF NOT EXISTS api_keys (
     id SERIAL PRIMARY KEY,
     key TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
@@ -54,16 +48,20 @@ CREATE TABLE api_keys (
     created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Índices
-CREATE INDEX idx_products_name ON products(name);
-CREATE INDEX idx_products_category_id ON products(category_id);
-CREATE INDEX idx_products_price ON products(price);
-CREATE INDEX idx_products_brand ON products(brand);
-CREATE INDEX idx_products_condition ON products(condition);
-CREATE INDEX idx_images_product_id ON images(product_id);
-CREATE INDEX idx_api_keys_key ON api_keys(key);
+-- Índices (IF NOT EXISTS para evitar erro se já existirem)
+CREATE INDEX IF NOT EXISTS idx_products_name ON products(name);
+CREATE INDEX IF NOT EXISTS idx_products_category_id ON products(category_id);
+CREATE INDEX IF NOT EXISTS idx_products_price ON products(price);
+CREATE INDEX IF NOT EXISTS idx_products_brand ON products(brand);
+CREATE INDEX IF NOT EXISTS idx_products_condition ON products(condition);
+CREATE INDEX IF NOT EXISTS idx_images_product_id ON images(product_id);
+CREATE INDEX IF NOT EXISTS idx_api_keys_key ON api_keys(key);
 
--- Inserir API keys usadas pelo frontend
-INSERT INTO api_keys (key, name, is_active, is_admin, created_at) VALUES
-('ed126afe-92a8-415f-b886-a1b0fed24ff5', 'Admin Panel Key', true, true, CURRENT_TIMESTAMP),
-('700cd62c-7c2e-4aa2-a580-803d9318761d', 'Public API Key', true, false, CURRENT_TIMESTAMP);
+-- Inserir API keys APENAS se não existirem
+INSERT INTO api_keys (key, name, is_active, is_admin, created_at)
+SELECT 'ed126afe-92a8-415f-b886-a1b0fed24ff5', 'Admin Panel Key', true, true, CURRENT_TIMESTAMP
+WHERE NOT EXISTS (SELECT 1 FROM api_keys WHERE key = 'ed126afe-92a8-415f-b886-a1b0fed24ff5');
+
+INSERT INTO api_keys (key, name, is_active, is_admin, created_at)
+SELECT '700cd62c-7c2e-4aa2-a580-803d9318761d', 'Public API Key', true, false, CURRENT_TIMESTAMP
+WHERE NOT EXISTS (SELECT 1 FROM api_keys WHERE key = '700cd62c-7c2e-4aa2-a580-803d9318761d');
